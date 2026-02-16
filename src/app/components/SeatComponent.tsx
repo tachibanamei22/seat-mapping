@@ -40,7 +40,7 @@ export default function SeatComponent({ seat, onClick, isSelectable = true, size
     };
 
     const sizeClasses = size === 'sm'
-        ? 'w-[38px] h-[26px] text-[7px]'
+        ? 'w-[32px] h-[22px] text-[6px]'
         : 'w-[48px] h-[30px] text-[8px]';
 
     return (

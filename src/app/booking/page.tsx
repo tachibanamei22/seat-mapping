@@ -149,12 +149,26 @@ export default function BookingPage() {
                             <p className="text-gray-500 text-xs">Welcome, {user?.username}</p>
                         </div>
                     </div>
-                    <button
-                        onClick={() => { logout(); router.push('/'); }}
-                        className="px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-sm transition-all"
-                    >
-                        Logout
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => {
+                                if (confirm('Reset seat layout to default positions? This will clear all bookings.')) {
+                                    localStorage.clear();
+                                    window.location.reload();
+                                }
+                            }}
+                            className="px-4 py-2 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-sm transition-all"
+                            title="Reset seat positions to default"
+                        >
+                            Reset Layout
+                        </button>
+                        <button
+                            onClick={() => { logout(); router.push('/'); }}
+                            className="px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-sm transition-all"
+                        >
+                            Logout
+                        </button>
+                    </div>
                 </div>
             </header>
 

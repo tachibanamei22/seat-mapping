@@ -3,7 +3,9 @@
 import { Seat, Booking, SeatGroup } from '../types';
 
 // ==================== SEAT LAYOUT DATA ====================
-// Matches the floor map screenshot layout
+// Seat: 32x22px, gap: 2px
+// 4-col = 134px, 3-col = 100px, 5-col = 168px, 2-col = 66px
+// At ~1020px container: 4-col ≈ 13%, 3-col ≈ 10%, 5-col ≈ 16.5%
 
 function createSeats(prefix: string, count: number, startNum: number = 1): Seat[] {
     const seats: Seat[] = [];
@@ -56,7 +58,7 @@ export function getDefaultSeatGroups(): SeatGroup[] {
             name: 'TEMU Block B',
             seats: createSeatsGrid('TB', 2, 4, 1),
             gridCols: 4,
-            x: 14, y: 3,
+            x: 17, y: 3,
         },
         {
             id: 'temu-top-3',
@@ -70,7 +72,7 @@ export function getDefaultSeatGroups(): SeatGroup[] {
             name: 'TEMU Block D',
             seats: createSeatsGrid('TD', 2, 4, 1),
             gridCols: 4,
-            x: 12, y: 12,
+            x: 14, y: 12,
         },
         {
             id: 'temu-top-5',
@@ -87,20 +89,20 @@ export function getDefaultSeatGroups(): SeatGroup[] {
             x: 3, y: 30,
         },
 
-        // ===== TOP-CENTER (CRM cluster - orange) =====
+        // ===== TOP-CENTER (CRM cluster) =====
         {
             id: 'crm-1',
             name: 'CRM Block A',
             seats: createSeatsGrid('CRM', 3, 3, 1),
             gridCols: 3,
-            x: 32, y: 3,
+            x: 34, y: 3,
         },
         {
             id: 'crm-2',
             name: 'CRM Block B',
             seats: createSeatsGrid('CRM', 3, 3, 10),
             gridCols: 3,
-            x: 32, y: 15,
+            x: 34, y: 14,
         },
 
         // ===== TOP-RIGHT (CBN L1/Red cluster) =====
@@ -109,31 +111,31 @@ export function getDefaultSeatGroups(): SeatGroup[] {
             name: 'CBN L1 Block A',
             seats: createSeatsGrid('R', 2, 3, 1),
             gridCols: 3,
-            x: 46, y: 3,
+            x: 52, y: 3,
         },
         {
             id: 'cbn-l1-2',
             name: 'CBN L1 Block B',
             seats: createSeatsGrid('R', 2, 3, 7),
             gridCols: 3,
-            x: 55, y: 3,
+            x: 63, y: 3,
         },
         {
             id: 'cbn-l1-3',
             name: 'CBN L1 Block C',
             seats: createSeatsGrid('R', 2, 3, 13),
             gridCols: 3,
-            x: 46, y: 12,
+            x: 52, y: 12,
         },
         {
             id: 'cbn-l1-4',
             name: 'CBN L1 Block D',
             seats: createSeatsGrid('R', 2, 3, 19),
             gridCols: 3,
-            x: 55, y: 12,
+            x: 63, y: 12,
         },
 
-        // ===== CBN CRM (pink, middle area) =====
+        // ===== CBN CRM (middle area) =====
         {
             id: 'cbn-crm-1',
             name: 'CBN CRM',
@@ -155,7 +157,7 @@ export function getDefaultSeatGroups(): SeatGroup[] {
             name: 'Block MR2',
             seats: createSeatsGrid('MR', 2, 2, 10),
             gridCols: 2,
-            x: 62, y: 25,
+            x: 63, y: 25,
         },
 
         // ===== FAR RIGHT column =====
@@ -164,7 +166,7 @@ export function getDefaultSeatGroups(): SeatGroup[] {
             name: 'Block FR',
             seats: createSeatsGrid('FR', 4, 2, 1),
             gridCols: 2,
-            x: 72, y: 20,
+            x: 76, y: 20,
         },
 
         // ===== BOTTOM-LEFT small cluster =====
@@ -199,14 +201,14 @@ export function getDefaultSeatGroups(): SeatGroup[] {
             name: 'CBN Blue A',
             seats: createSeatsGrid('CB', 2, 5, 1),
             gridCols: 5,
-            x: 24, y: 65,
+            x: 21, y: 65,
         },
         {
             id: 'cbn-blue-2',
             name: 'CBN Blue B',
             seats: createSeatsGrid('CB', 2, 5, 11),
             gridCols: 5,
-            x: 24, y: 74,
+            x: 21, y: 74,
         },
 
         // CBN L2
@@ -215,14 +217,14 @@ export function getDefaultSeatGroups(): SeatGroup[] {
             name: 'CBN L2 A',
             seats: createSeatsGrid('CL', 2, 5, 1),
             gridCols: 5,
-            x: 45, y: 65,
+            x: 39, y: 65,
         },
         {
             id: 'cbn-l2-2',
             name: 'CBN L2 B',
             seats: createSeatsGrid('CL', 2, 5, 11),
             gridCols: 5,
-            x: 45, y: 74,
+            x: 39, y: 74,
         },
 
         // ===== BOTTOM ROW (L1-L15) =====
@@ -231,7 +233,7 @@ export function getDefaultSeatGroups(): SeatGroup[] {
             name: 'L Row',
             seats: createSeats('L', 15, 1),
             gridCols: 15,
-            x: 15, y: 88,
+            x: 10, y: 88,
         },
     ];
 }
