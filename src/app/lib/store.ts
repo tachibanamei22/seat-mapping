@@ -238,7 +238,6 @@ export function getDefaultSeatGroups(): SeatGroup[] {
 
 // ==================== STORAGE HELPERS ====================
 
-const SEATS_KEY = 'seatBooking_seats';
 const BOOKINGS_KEY = 'seatBooking_bookings';
 const SEAT_GROUPS_KEY = 'seatBooking_seatGroups';
 

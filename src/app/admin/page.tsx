@@ -8,7 +8,7 @@ import { getSeatGroups, getBookings, approveBooking, rejectBooking } from '../li
 import FloorMap from '../components/FloorMap';
 
 export default function AdminPage() {
-    const { user, isAuthenticated, isAdmin, logout } = useAuth();
+    const { isAuthenticated, isAdmin, logout } = useAuth();
     const router = useRouter();
     const [seatGroups, setSeatGroups] = useState<SeatGroup[]>([]);
     const [bookings, setBookings] = useState<Booking[]>([]);
