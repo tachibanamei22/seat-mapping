@@ -3,15 +3,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { CAMPAIGNS, Seat, SeatGroup, Booking, getCampaignColor, Campaign } from '../types';
-import { getSeatGroups, saveSeatGroups, addBooking, getBookings } from '../lib/store';
+import { SHIFTS, Seat, SeatGroup, Booking, Shift, shiftsByTier, TIER_LABELS } from '../types';
+import {
+    getSeatGroups,
+    addBooking,
+    getBookings,
+    resetStore,
+    subscribeToSeats,
+    subscribeToBookings,
+    initializeStore,
+} from '../lib/store';
 import FloorMap from '../components/FloorMap';
 
 export default function BookingPage() {
     const { user, isAuthenticated, logout } = useAuth();
     const router = useRouter();
     const [seatGroups, setSeatGroups] = useState<SeatGroup[]>([]);
-    const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+    const [selectedCampaign, setSelectedCampaign] = useState<Shift | null>(null);
     const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
     const [isBooking, setIsBooking] = useState(false);
     const [toast, setToast] = useState<string | null>(null);
@@ -21,19 +29,36 @@ export default function BookingPage() {
 
     // Auth guard
     useEffect(() => {
-        if (!isAuthenticated) {
-            router.push('/');
-        }
+        if (!isAuthenticated) router.push('/');
     }, [isAuthenticated, router]);
 
-    // Load data
-    const loadData = useCallback(() => {
-        setSeatGroups(getSeatGroups());
-        setBookingHistory(getBookings().filter(b => b.userId === user?.id));
+    // Load data (async Supabase)
+    const loadData = useCallback(async () => {
+        try {
+            await initializeStore();
+            const [groups, allBookings] = await Promise.all([
+                getSeatGroups(),
+                getBookings(),
+            ]);
+            setSeatGroups(groups);
+            setBookingHistory(allBookings.filter(b => b.userId === user?.id));
+        } catch (err) {
+            console.error('loadData error:', err);
+        }
     }, [user?.id]);
 
     useEffect(() => {
         loadData();
+    }, [loadData]);
+
+    // Real-time subscriptions — refresh whenever DB changes
+    useEffect(() => {
+        const seatsCh = subscribeToSeats(() => loadData());
+        const bookingsCh = subscribeToBookings(() => loadData());
+        return () => {
+            seatsCh.unsubscribe();
+            bookingsCh.unsubscribe();
+        };
     }, [loadData]);
 
     const showToast = (message: string) => {
@@ -46,84 +71,60 @@ export default function BookingPage() {
             showToast('Please select a campaign first!');
             return;
         }
+        // Only available seats can be selected; already-selected can be deselected
         if (seat.status !== 'available' && seat.status !== 'selected') return;
 
-        const updatedGroups = seatGroups.map(group => ({
+        // Update local UI state only — Supabase write happens on "Book" click
+        setSeatGroups(prev => prev.map(group => ({
             ...group,
             seats: group.seats.map(s => {
-                if (s.id === seat.id) {
-                    if (s.status === 'selected') {
-                        // Deselect
-                        setSelectedSeats(prev => prev.filter(id => id !== seat.id));
-                        return { ...s, status: 'available' as const, campaignId: null };
-                    } else {
-                        // Select
-                        setSelectedSeats(prev => [...prev, seat.id]);
-                        return { ...s, status: 'selected' as const, campaignId: selectedCampaign.id };
-                    }
+                if (s.id !== seat.id) return s;
+                if (s.status === 'selected') {
+                    setSelectedSeats(ids => ids.filter(id => id !== seat.id));
+                    return { ...s, status: 'available' as const, campaignId: null };
+                } else {
+                    setSelectedSeats(ids => [...ids, seat.id]);
+                    return { ...s, status: 'selected' as const, campaignId: selectedCampaign.id };
                 }
-                return s;
             }),
-        }));
-
-        setSeatGroups(updatedGroups);
-        saveSeatGroups(updatedGroups);
+        })));
     };
 
     const handleBookSelected = async () => {
-        if (selectedSeats.length === 0) {
-            showToast('No seats selected!');
-            return;
-        }
-        if (!startDate || !endDate) {
-            showToast('Please select a booking period (start & end date)!');
-            return;
-        }
-        if (new Date(endDate) < new Date(startDate)) {
-            showToast('End date must be after start date!');
-            return;
-        }
+        if (selectedSeats.length === 0) { showToast('No seats selected!'); return; }
+        if (!startDate || !endDate) { showToast('Please select a booking period!'); return; }
+        if (new Date(endDate) < new Date(startDate)) { showToast('End date must be after start date!'); return; }
         if (!selectedCampaign || !user) return;
 
         setIsBooking(true);
-        await new Promise(r => setTimeout(r, 500));
-
-        const updatedGroups = seatGroups.map(group => ({
-            ...group,
-            seats: group.seats.map(s => {
-                if (selectedSeats.includes(s.id) && s.status === 'selected') {
-                    const bookingId = `booking-${Date.now()}-${s.id}`;
-                    // Create booking
-                    addBooking({
-                        id: bookingId,
-                        seatId: s.id,
-                        seatLabel: s.label,
-                        campaignId: selectedCampaign.id,
-                        campaignName: selectedCampaign.name,
-                        userId: user.id,
-                        username: user.username,
-                        status: 'pending',
-                        startDate,
-                        endDate,
-                        timestamp: Date.now(),
-                    });
-                    return {
-                        ...s,
-                        status: 'pending' as const,
-                        campaignId: selectedCampaign.id,
-                        bookingId,
-                    };
-                }
-                return s;
-            }),
-        }));
-
-        setSeatGroups(updatedGroups);
-        saveSeatGroups(updatedGroups);
-        setSelectedSeats([]);
-        setIsBooking(false);
-        loadData();
-        showToast(`Successfully booked ${selectedSeats.length} seat(s)! Waiting for admin approval.`);
+        try {
+            // Write each selected seat to Supabase
+            for (const seatId of selectedSeats) {
+                const seat = seatGroups.flatMap(g => g.seats).find(s => s.id === seatId);
+                if (!seat) continue;
+                const bookingId = `booking-${Date.now()}-${seatId}`;
+                await addBooking({
+                    id: bookingId,
+                    seatId: seat.id,
+                    seatLabel: seat.label,
+                    campaignId: selectedCampaign.id,
+                    campaignName: selectedCampaign.name,
+                    userId: user.id,
+                    username: user.username,
+                    status: 'pending',
+                    startDate,
+                    endDate,
+                    timestamp: Date.now(),
+                });
+            }
+            setSelectedSeats([]);
+            await loadData(); // immediate refresh + subscription handles cross-user updates
+            showToast(`Assigned ${selectedSeats.length} seat(s) to ${selectedCampaign.name} shift! Waiting for admin approval.`);
+        } catch (err: any) {
+            showToast(`Booking failed: ${err.message}`);
+        } finally {
+            setIsBooking(false);
+        }
     };
 
     const totalSeats = seatGroups.reduce((sum, g) => sum + g.seats.length, 0);
@@ -145,20 +146,19 @@ export default function BookingPage() {
                             </svg>
                         </div>
                         <div>
-                            <h1 className="text-white font-bold text-lg leading-tight">Seat Booking</h1>
+                            <h1 className="text-white font-bold text-lg leading-tight">Seat Mapping</h1>
                             <p className="text-gray-500 text-xs">Welcome, {user?.username}</p>
                         </div>
                     </div>
                     <div className="flex gap-2">
                         <button
-                            onClick={() => {
-                                if (confirm('Reset seat layout to default positions? This will clear all bookings.')) {
-                                    localStorage.clear();
-                                    window.location.reload();
+                            onClick={async () => {
+                                if (confirm('Reset all bookings? All seats will be freed.')) {
+                                    await resetStore();
+                                    showToast('Layout reset — all seats are now available.');
                                 }
                             }}
                             className="px-4 py-2 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-sm transition-all"
-                            title="Reset seat positions to default"
                         >
                             Reset Layout
                         </button>
@@ -203,27 +203,26 @@ export default function BookingPage() {
                         </div>
 
                         {/* Legend */}
-                        <div className="flex flex-wrap gap-4 mt-4 px-2">
-                            <div className="flex items-center gap-2">
-                                <div className="w-5 h-3.5 rounded-sm bg-gray-500" />
+                        <div className="flex flex-wrap gap-x-5 gap-y-2 mt-4 px-2">
+                            {/* Static states */}
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-5 h-3.5 rounded-sm border border-green-500/60 bg-green-500/10" />
                                 <span className="text-gray-400 text-xs">Available</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-5 h-3.5 rounded-sm bg-green-500" />
-                                <span className="text-gray-400 text-xs">Selected</span>
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-5 h-3.5 rounded-sm bg-green-400" />
+                                <span className="text-gray-400 text-xs">Selected (you)</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-5 h-3.5 rounded-sm bg-blue-500/40 border border-blue-500/60" />
-                                <span className="text-gray-400 text-xs">Pending</span>
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-5 h-3.5 rounded-sm border border-yellow-500/60 bg-yellow-500/15" />
+                                <span className="text-gray-400 text-xs">Pending approval</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-5 h-3.5 rounded-sm bg-blue-500" />
-                                <span className="text-gray-400 text-xs">Approved</span>
-                            </div>
-                            {CAMPAIGNS.map(c => (
-                                <div key={c.id} className="flex items-center gap-2">
-                                    <div className="w-5 h-3.5 rounded-sm" style={{ backgroundColor: c.color }} />
-                                    <span className="text-gray-400 text-xs">{c.name}</span>
+                            {/* Campaign colors for approved seats */}
+                            <span className="text-gray-600 text-xs self-center">Approved →</span>
+                            {SHIFTS.map(s => (
+                                <div key={s.id} className="flex items-center gap-1.5">
+                                    <div className="w-5 h-3.5 rounded-sm" style={{ backgroundColor: s.color }} />
+                                    <span className="text-gray-400 text-xs">{s.name}</span>
                                 </div>
                             ))}
                         </div>
@@ -231,49 +230,53 @@ export default function BookingPage() {
 
                     {/* Sidebar */}
                     <div className="space-y-5">
-                        {/* Campaign Selector */}
+                        {/* Shift Selector — grouped by tier */}
                         <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
-                            <h2 className="text-white font-semibold mb-3 text-sm">Select Campaign</h2>
-                            <div className="grid grid-cols-1 gap-2">
-                                {CAMPAIGNS.map(campaign => (
-                                    <button
-                                        key={campaign.id}
-                                        onClick={() => {
-                                            setSelectedCampaign(campaign);
-                                            // Clear any previously selected seats when changing campaign
-                                            if (selectedCampaign?.id !== campaign.id) {
-                                                const resetGroups = seatGroups.map(group => ({
-                                                    ...group,
-                                                    seats: group.seats.map(s => {
-                                                        if (s.status === 'selected') {
-                                                            return { ...s, status: 'available' as const, campaignId: null };
-                                                        }
-                                                        return s;
-                                                    }),
-                                                }));
-                                                setSeatGroups(resetGroups);
-                                                saveSeatGroups(resetGroups);
-                                                setSelectedSeats([]);
-                                            }
-                                        }}
-                                        className={`
-                      flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all text-sm
-                      ${selectedCampaign?.id === campaign.id
-                                                ? 'bg-white/[0.1] border-2 shadow-lg'
-                                                : 'bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.06]'
-                                            }
-                    `}
-                                        style={{
-                                            borderColor: selectedCampaign?.id === campaign.id ? campaign.color : undefined,
-                                            boxShadow: selectedCampaign?.id === campaign.id ? `0 4px 20px ${getCampaignColor(campaign.id, 0.2)}` : undefined,
-                                        }}
-                                    >
-                                        <div
-                                            className="w-4 h-4 rounded-full shrink-0 shadow-inner"
-                                            style={{ backgroundColor: campaign.color }}
-                                        />
-                                        <span className="text-gray-200 font-medium">{campaign.name}</span>
-                                    </button>
+                            <h2 className="text-white font-semibold mb-3 text-sm">Select Shift</h2>
+                            <div className="space-y-3">
+                                {(Object.entries(shiftsByTier()) as [keyof typeof TIER_LABELS, typeof SHIFTS[0][]][]).map(([tier, shifts]) => (
+                                    <div key={tier}>
+                                        <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-1.5 px-1">
+                                            {TIER_LABELS[tier]}
+                                        </p>
+                                        <div className="grid grid-cols-1 gap-1.5">
+                                            {shifts.map(shift => {
+                                                const isSelected = selectedCampaign?.id === shift.id;
+                                                return (
+                                                    <button
+                                                        key={shift.id}
+                                                        onClick={() => {
+                                                            setSelectedCampaign(shift);
+                                                            if (selectedCampaign?.id !== shift.id) {
+                                                                setSeatGroups(prev => prev.map(group => ({
+                                                                    ...group,
+                                                                    seats: group.seats.map(s =>
+                                                                        s.status === 'selected'
+                                                                            ? { ...s, status: 'available' as const, campaignId: null }
+                                                                            : s
+                                                                    ),
+                                                                })));
+                                                                setSelectedSeats([]);
+                                                            }
+                                                        }}
+                                                        className={`flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all text-xs
+                                                            ${isSelected
+                                                                ? 'bg-white/[0.1] border-2'
+                                                                : 'bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.06]'
+                                                            }`}
+                                                        style={{
+                                                            borderColor: isSelected ? shift.color : undefined,
+                                                            boxShadow: isSelected ? `0 2px 12px ${shift.color}33` : undefined,
+                                                        }}
+                                                    >
+                                                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: shift.color }} />
+                                                        <span className="font-bold text-gray-200">{shift.name}</span>
+                                                        <span className="text-gray-500 ml-auto">{shift.hours}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -332,13 +335,13 @@ export default function BookingPage() {
                                     Booking...
                                 </span>
                             ) : (
-                                `Book Selected (${selectedSeats.length} seat${selectedSeats.length !== 1 ? 's' : ''})`
+                                `Assign Seats to ${selectedCampaign?.name ?? 'Shift'} (${selectedSeats.length})`
                             )}
                         </button>
 
                         {/* My Bookings */}
                         <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
-                            <h2 className="text-white font-semibold mb-3 text-sm">My Bookings</h2>
+                            <h2 className="text-white font-semibold mb-3 text-sm">My Seat Assignments</h2>
                             {bookingHistory.length === 0 ? (
                                 <p className="text-gray-500 text-xs">No bookings yet</p>
                             ) : (
@@ -350,7 +353,7 @@ export default function BookingPage() {
                                         >
                                             <div>
                                                 <span className="text-gray-200 text-xs font-medium">{booking.seatLabel}</span>
-                                                <span className="text-gray-500 text-xs ml-2">({booking.campaignName})</span>
+                                                <span className="text-gray-500 text-xs ml-2">({booking.campaignName} shift)</span>
                                                 <p className="text-gray-500 text-[10px] mt-0.5">
                                                     {booking.startDate} → {booking.endDate}
                                                 </p>

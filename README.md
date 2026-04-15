@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# App 2 — Seat Mapping Plan (Booking Seat)
 
-## Getting Started
+Real-time seat booking system for Transcosmos Technical Test.
 
-First, run the development server:
+## What it does
+
+- **Visual floor map** showing all seats with live status colours  
+  - 🟢 **Green** = available  
+  - 🟠 **Amber** = pending approval  
+  - 🔴 **Red** = occupied / approved  
+- **Real-time sync** via Supabase — all users see seat state instantly  
+- **Booking flow**: select campaign → pick seats → set dates → submit  
+- **Admin panel**: approve / reject bookings; floor map updates live for everyone  
+
+## Stack
+
+| Layer | Tech |
+|-------|------|
+| Frontend | Next.js 14 · TypeScript · Tailwind CSS |
+| Database | Supabase (Postgres + Realtime subscriptions) |
+| Auth | Session in localStorage (demo) |
+
+## Setup
+
+### 1. Create a Supabase project
+
+1. Go to https://supabase.com → New Project  
+2. Open **SQL Editor** → paste and run `supabase/migrations/001_initial.sql`  
+3. Copy **Project URL** and **anon public key** from Project Settings → API
+
+### 2. Configure environment
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.local.example .env.local
+# Fill in your NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Install and run
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+# → http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Demo accounts
 
-## Learn More
+| Role  | Username | Password |
+|-------|----------|----------|
+| User  | user     | user123  |
+| Admin | admin    | admin123 |
 
-To learn more about Next.js, take a look at the following resources:
+## Real-time behaviour
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+When any user books a seat or admin approves/rejects, the floor map updates for **all connected clients** within ~100 ms via Supabase Postgres Changes — no polling, no page refresh required.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Key files changed from original repo
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| File | Change |
+|------|--------|
+| `src/app/lib/store.ts` | localStorage → async Supabase CRUD + real-time subscriptions |
+| `src/app/lib/supabase.ts` | **New** — Supabase client singleton |
+| `src/app/lib/database.types.ts` | **New** — TypeScript types matching DB schema |
+| `src/app/components/SeatComponent.tsx` | Green (available) / Red (occupied) colour scheme |
+| `src/app/booking/page.tsx` | Async data load + real-time subscription hook |
+| `src/app/admin/page.tsx` | Async approve/reject + real-time subscription hook |
+| `supabase/migrations/001_initial.sql` | **New** — DB schema, RLS policies, realtime publication |
+| `.env.local.example` | **New** — environment variable template |
