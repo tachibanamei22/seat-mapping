@@ -383,4 +383,8 @@ export default function BookingPage() {
                     <div className="bg-gray-800 border border-white/[0.1] text-white text-sm px-6 py-3 rounded-xl shadow-2xl backdrop-blur-md">
                         {toast}
                     </div>
-                <
+                </div>
+            )}
+        </div>
+    );
+}

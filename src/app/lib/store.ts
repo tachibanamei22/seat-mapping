@@ -249,4 +249,10 @@ export function subscribeToSeats(callback: () => void): RealtimeChannel {
         .subscribe();
 }
 
-export function subscribeToBookings(callback: () => void
+export function subscribeToBookings(callback: () => void): RealtimeChannel {
+    const id = Math.random().toString(36).slice(2, 8);
+    return supabase
+        .channel(`bookings-rt-${id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => callback())
+        .subscribe();
+}
