@@ -10,33 +10,37 @@ interface FloorMapProps {
     isSelectable?: boolean;
 }
 
-// Facility boxes on the floor map
 const FACILITIES = [
-    { id: 'lift-1', label: 'Lift', x: 17, y: 40, w: 6, h: 5 },
-    { id: 'lift-2', label: 'Lift', x: 17, y: 47, w: 6, h: 5 },
-    { id: 'lift-3', label: 'Lift', x: 17, y: 54, w: 6, h: 5 },
+    { id: 'lift-1',      label: 'Lift',       x: 17, y: 40, w: 6,  h: 5 },
+    { id: 'lift-2',      label: 'Lift',       x: 17, y: 47, w: 6,  h: 5 },
+    { id: 'lift-3',      label: 'Lift',       x: 17, y: 54, w: 6,  h: 5 },
     { id: 'lift-barang', label: 'Lift Barang', x: 28, y: 36, w: 10, h: 7 },
-    { id: 'tangga-1', label: 'Tangga', x: 40, y: 36, w: 7, h: 5 },
-    { id: 'tangga-2', label: 'Tangga', x: 49, y: 36, w: 7, h: 5 },
-    { id: 'toilet', label: 'Toilet', x: 28, y: 45, w: 8, h: 6 },
-    { id: 'server', label: 'Server', x: 40, y: 43, w: 8, h: 5 },
-    { id: 'pantry', label: 'Pantry', x: 52, y: 50, w: 8, h: 6 },
+    { id: 'tangga-1',    label: 'Tangga',     x: 40, y: 36, w: 7,  h: 5 },
+    { id: 'tangga-2',    label: 'Tangga',     x: 49, y: 36, w: 7,  h: 5 },
+    { id: 'toilet',      label: 'Toilet',     x: 28, y: 45, w: 8,  h: 6 },
+    { id: 'server',      label: 'Server',     x: 40, y: 43, w: 8,  h: 5 },
+    { id: 'pantry',      label: 'Pantry',     x: 52, y: 50, w: 8,  h: 6 },
 ];
 
 export default function FloorMap({ seatGroups, onSeatClick, isSelectable = true }: FloorMapProps) {
     return (
         <div className="relative w-full" style={{ paddingBottom: '70%' }}>
-            {/* Floor outline */}
+            {/* Floor outline — warm canvas */}
             <div
-                className="absolute inset-0 rounded-xl border-2 border-gray-600 bg-gray-900/50 overflow-hidden"
-                style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.3)' }}
+                className="absolute inset-0 rounded-xl overflow-hidden"
+                style={{
+                    background: '#EDE8E1',
+                    border: '2px solid #D4CFC9',
+                    boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.04)',
+                }}
             >
-                {/* Grid pattern background */}
+                {/* Subtle dot grid */}
                 <div
-                    className="absolute inset-0 opacity-5"
+                    className="absolute inset-0"
                     style={{
-                        backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+                        backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px)',
                         backgroundSize: '20px 20px',
+                        opacity: 0.5,
                     }}
                 />
 
@@ -44,15 +48,17 @@ export default function FloorMap({ seatGroups, onSeatClick, isSelectable = true 
                 {FACILITIES.map(facility => (
                     <div
                         key={facility.id}
-                        className="absolute rounded-md border border-gray-600 bg-gray-800/70 flex items-center justify-center backdrop-blur-sm"
+                        className="absolute rounded-md flex items-center justify-center"
                         style={{
                             left: `${facility.x}%`,
                             top: `${facility.y}%`,
                             width: `${facility.w}%`,
                             height: `${facility.h}%`,
+                            background: '#FFFFFF',
+                            border: '1px solid #D4CFC9',
                         }}
                     >
-                        <span className="text-gray-400 text-[9px] font-medium tracking-wide">
+                        <span style={{ color: '#94A3B8', fontSize: '9px', fontWeight: 600, letterSpacing: '0.02em' }}>
                             {facility.label}
                         </span>
                     </div>
@@ -60,7 +66,6 @@ export default function FloorMap({ seatGroups, onSeatClick, isSelectable = true 
 
                 {/* Seat Groups */}
                 {seatGroups.map(group => {
-                    // Organize seats by row
                     const rows: Record<number, Seat[]> = {};
                     group.seats.forEach(seat => {
                         if (!rows[seat.row]) rows[seat.row] = [];
@@ -72,10 +77,7 @@ export default function FloorMap({ seatGroups, onSeatClick, isSelectable = true 
                         <div
                             key={group.id}
                             className="absolute"
-                            style={{
-                                left: `${group.x}%`,
-                                top: `${group.y}%`,
-                            }}
+                            style={{ left: `${group.x}%`, top: `${group.y}%` }}
                         >
                             <div className="flex flex-col gap-[2px]">
                                 {rowKeys.map(rowIdx => (
@@ -98,11 +100,14 @@ export default function FloorMap({ seatGroups, onSeatClick, isSelectable = true 
                     );
                 })}
 
-                {/* Wall/entrance indicator at right side */}
+                {/* Entrance indicator */}
                 <div
-                    className="absolute right-[2%] top-[20%] w-[3%] h-[15%] rounded border border-gray-600 bg-gray-700/50 flex items-center justify-center"
+                    className="absolute right-[2%] top-[20%] w-[3%] h-[15%] rounded flex items-center justify-center"
+                    style={{ border: '1px solid #D4CFC9', background: '#FFFFFF' }}
                 >
-                    <span className="text-gray-500 text-[7px] rotate-90 whitespace-nowrap">Entrance</span>
+                    <span style={{ color: '#94A3B8', fontSize: '7px', writingMode: 'vertical-rl', whiteSpace: 'nowrap' }}>
+                        Entrance
+                    </span>
                 </div>
             </div>
         </div>

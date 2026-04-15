@@ -30,12 +30,10 @@ export default function BookingPage() {
     const [showResetModal, setShowResetModal] = useState(false);
     const [isResetting, setIsResetting] = useState(false);
 
-    // Auth guard
     useEffect(() => {
         if (!isAuthenticated) router.push('/');
     }, [isAuthenticated, router]);
 
-    // Load data (async Supabase)
     const loadData = useCallback(async () => {
         try {
             await initializeStore();
@@ -54,7 +52,6 @@ export default function BookingPage() {
         loadData();
     }, [loadData]);
 
-    // Real-time subscriptions - refresh whenever DB changes
     useEffect(() => {
         const seatsCh = subscribeToSeats(() => loadData());
         const bookingsCh = subscribeToBookings(() => loadData());
@@ -71,13 +68,11 @@ export default function BookingPage() {
 
     const handleSeatClick = (seat: Seat) => {
         if (!selectedCampaign) {
-            showToast('Please select a campaign first!');
+            showToast('Please select a shift first!');
             return;
         }
-        // Only available seats can be selected; already-selected can be deselected
         if (seat.status !== 'available' && seat.status !== 'selected') return;
 
-        // Update local UI state only - Supabase write happens on "Book" click
         setSeatGroups(prev => prev.map(group => ({
             ...group,
             seats: group.seats.map(s => {
@@ -101,7 +96,6 @@ export default function BookingPage() {
 
         setIsBooking(true);
         try {
-            // Write each selected seat to Supabase
             for (const seatId of selectedSeats) {
                 const seat = seatGroups.flatMap(g => g.seats).find(s => s.id === seatId);
                 if (!seat) continue;
@@ -121,7 +115,7 @@ export default function BookingPage() {
                 });
             }
             setSelectedSeats([]);
-            await loadData(); // immediate refresh + subscription handles cross-user updates
+            await loadData();
             showToast(`Assigned ${selectedSeats.length} seat(s) to ${selectedCampaign.name} shift! Waiting for admin approval.`);
         } catch (err: any) {
             showToast(`Booking failed: ${err.message}`);
@@ -138,30 +132,37 @@ export default function BookingPage() {
     if (!isAuthenticated) return null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-            {/* Header */}
-            <header className="border-b border-white/[0.06] backdrop-blur-md bg-gray-950/80 sticky top-0 z-50">
+        <div className="min-h-screen" style={{ background: '#F8F7F4' }}>
+            {/* Header — dark slate */}
+            <header className="sticky top-0 z-50 shadow-sm" style={{ background: '#2C3E50' }}>
                 <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                            style={{ background: '#E85D3A' }}>
                             <Building2 className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-white font-bold text-lg leading-tight">Seat Mapping</h1>
-                            <p className="text-gray-500 text-xs">Welcome, {user?.username}</p>
+                            <h1 className="text-white font-bold text-base leading-tight">Seat Mapping</h1>
+                            <p className="text-white/50 text-xs">Welcome, {user?.username}</p>
                         </div>
                     </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => setShowResetModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-sm transition-all"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                            style={{ background: 'rgba(232,93,58,0.15)', color: '#E85D3A', border: '1px solid rgba(232,93,58,0.3)' }}
+                            onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(232,93,58,0.25)')}
+                            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(232,93,58,0.15)')}
                         >
                             <RotateCcw className="w-4 h-4" />
-                            Reset Layout
+                            Reset
                         </button>
                         <button
                             onClick={() => { logout(); router.push('/'); }}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-sm transition-all"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                            style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.12)' }}
+                            onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)')}
+                            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)')}
                         >
                             <LogOut className="w-4 h-4" />
                             Logout
@@ -177,22 +178,25 @@ export default function BookingPage() {
                         {/* Stats bar */}
                         <div className="grid grid-cols-4 gap-3 mb-5">
                             {[
-                                { label: 'Total', value: totalSeats, color: 'from-gray-600 to-gray-700' },
-                                { label: 'Available', value: availableSeats, color: 'from-green-600 to-green-700' },
-                                { label: 'Pending', value: pendingSeats, color: 'from-yellow-600 to-yellow-700' },
-                                { label: 'Approved', value: approvedSeats, color: 'from-blue-600 to-blue-700' },
+                                { label: 'Total',     value: totalSeats,     accent: '#2C3E50' },
+                                { label: 'Available', value: availableSeats, accent: '#6BAE7F' },
+                                { label: 'Pending',   value: pendingSeats,   accent: '#F59E0B' },
+                                { label: 'Approved',  value: approvedSeats,  accent: '#E85D3A' },
                             ].map(stat => (
-                                <div key={stat.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 text-center">
-                                    <div className={`text-xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                                <div key={stat.label}
+                                    className="rounded-xl p-3 text-center border"
+                                    style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
+                                    <div className="text-xl font-bold" style={{ color: stat.accent }}>
                                         {stat.value}
                                     </div>
-                                    <div className="text-gray-500 text-xs mt-0.5">{stat.label}</div>
+                                    <div className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{stat.label}</div>
                                 </div>
                             ))}
                         </div>
 
                         {/* Floor Map */}
-                        <div className="relative bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6 overflow-hidden">
+                        <div className="relative rounded-2xl p-4 sm:p-6 border overflow-hidden"
+                            style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
                             <div className={`transition-opacity duration-500 ${isResetting ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
                                 <FloorMap
                                     seatGroups={seatGroups}
@@ -203,69 +207,65 @@ export default function BookingPage() {
                             {isResetting && (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 animate-fade-in">
                                     <div className="relative w-14 h-14">
-                                        {/* Outer ring */}
-                                        <div className="absolute inset-0 rounded-full border-2 border-orange-500/20" />
-                                        {/* Spinning arc */}
+                                        <div className="absolute inset-0 rounded-full border-2" style={{ borderColor: 'rgba(232,93,58,0.2)' }} />
                                         <svg className="absolute inset-0 w-full h-full animate-reset-spin" viewBox="0 0 56 56" fill="none">
-                                            <circle cx="28" cy="28" r="26" stroke="url(#og)" strokeWidth="2" strokeLinecap="round" strokeDasharray="60 100" />
+                                            <circle cx="28" cy="28" r="26" stroke="url(#coral-grad)" strokeWidth="2" strokeLinecap="round" strokeDasharray="60 100" />
                                             <defs>
-                                                <linearGradient id="og" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-                                                    <stop stopColor="#f97316" />
-                                                    <stop offset="1" stopColor="#fb923c" stopOpacity="0" />
+                                                <linearGradient id="coral-grad" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                                                    <stop stopColor="#E85D3A" />
+                                                    <stop offset="1" stopColor="#E85D3A" stopOpacity="0" />
                                                 </linearGradient>
                                             </defs>
                                         </svg>
-                                        {/* Center icon */}
                                         <div className="absolute inset-0 flex items-center justify-center">
-                                            <RotateCcw className="w-5 h-5 text-orange-400" />
+                                            <RotateCcw className="w-5 h-5" style={{ color: '#E85D3A' }} />
                                         </div>
                                     </div>
                                     <div className="text-center">
-                                        <p className="text-orange-300 text-sm font-semibold">Resetting layout</p>
-                                        <p className="text-gray-500 text-xs mt-1">Clearing all bookings...</p>
+                                        <p className="text-sm font-semibold" style={{ color: '#E85D3A' }}>Resetting layout</p>
+                                        <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>Clearing all bookings...</p>
                                     </div>
                                 </div>
                             )}
                         </div>
 
                         {/* Legend */}
-                        <div className="flex flex-wrap gap-x-5 gap-y-2 mt-4 px-2">
-                            {/* Static states */}
+                        <div className="flex flex-wrap gap-x-5 gap-y-2 mt-4 px-1">
                             <div className="flex items-center gap-1.5">
-                                <div className="w-5 h-3.5 rounded-sm border border-green-500/60 bg-green-500/10" />
-                                <span className="text-gray-400 text-xs">Available</span>
+                                <div className="w-5 h-3.5 rounded-sm border" style={{ borderColor: '#6BAE7F', background: 'rgba(107,174,127,0.12)' }} />
+                                <span className="text-xs" style={{ color: '#64748B' }}>Available</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <div className="w-5 h-3.5 rounded-sm bg-green-400" />
-                                <span className="text-gray-400 text-xs">Selected (you)</span>
+                                <div className="w-5 h-3.5 rounded-sm" style={{ background: '#6BAE7F' }} />
+                                <span className="text-xs" style={{ color: '#64748B' }}>Selected (you)</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <div className="w-5 h-3.5 rounded-sm border border-yellow-500/60 bg-yellow-500/15" />
-                                <span className="text-gray-400 text-xs">Pending approval</span>
+                                <div className="w-5 h-3.5 rounded-sm border" style={{ borderColor: '#F59E0B', background: 'rgba(245,158,11,0.15)' }} />
+                                <span className="text-xs" style={{ color: '#64748B' }}>Pending</span>
                             </div>
-                            {/* Campaign colors for approved seats */}
-                            <span className="text-gray-600 text-xs self-center">Approved →</span>
+                            <span className="text-xs self-center" style={{ color: '#CBD5E1' }}>Approved →</span>
                             {SHIFTS.map(s => (
                                 <div key={s.id} className="flex items-center gap-1.5">
                                     <div className="w-5 h-3.5 rounded-sm" style={{ backgroundColor: s.color }} />
-                                    <span className="text-gray-400 text-xs">{s.name}</span>
+                                    <span className="text-xs" style={{ color: '#64748B' }}>{s.name}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {/* Sidebar */}
-                    <div className="space-y-5">
-                        {/* Shift Selector - grouped by tier */}
-                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
-                            <h2 className="text-white font-semibold mb-3 text-sm">Select Shift</h2>
+                    <div className="space-y-4">
+                        {/* Shift Selector */}
+                        <div className="rounded-2xl p-5 border" style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
+                            <h2 className="font-semibold mb-3 text-sm" style={{ color: '#2C3E50' }}>Select Shift</h2>
                             <div className="space-y-3">
                                 {(Object.entries(shiftsByTier()) as [keyof typeof TIER_LABELS, typeof SHIFTS[0][]][]).map(([tier, shifts]) => (
                                     <div key={tier}>
-                                        <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-1.5 px-1">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5 px-1"
+                                            style={{ color: '#94A3B8' }}>
                                             {TIER_LABELS[tier]}
                                         </p>
-                                        <div className="grid grid-cols-1 gap-1.5">
+                                        <div className="grid grid-cols-1 gap-1">
                                             {shifts.map(shift => {
                                                 const isSelected = selectedCampaign?.id === shift.id;
                                                 return (
@@ -285,19 +285,16 @@ export default function BookingPage() {
                                                                 setSelectedSeats([]);
                                                             }
                                                         }}
-                                                        className={`flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all text-xs
-                                                            ${isSelected
-                                                                ? 'bg-white/[0.1] border-2'
-                                                                : 'bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.06]'
-                                                            }`}
+                                                        className="flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all text-xs border"
                                                         style={{
-                                                            borderColor: isSelected ? shift.color : undefined,
-                                                            boxShadow: isSelected ? `0 2px 12px ${shift.color}33` : undefined,
+                                                            background: isSelected ? `${shift.color}12` : '#F8F7F4',
+                                                            borderColor: isSelected ? shift.color : '#E8E4DF',
+                                                            borderWidth: isSelected ? '1.5px' : '1px',
                                                         }}
                                                     >
                                                         <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: shift.color }} />
-                                                        <span className="font-bold text-gray-200">{shift.name}</span>
-                                                        <span className="text-gray-500 ml-auto">{shift.hours}</span>
+                                                        <span className="font-semibold" style={{ color: '#2C3E50' }}>{shift.name}</span>
+                                                        <span className="ml-auto" style={{ color: '#94A3B8' }}>{shift.hours}</span>
                                                     </button>
                                                 );
                                             })}
@@ -308,34 +305,40 @@ export default function BookingPage() {
                         </div>
 
                         {/* Booking Period */}
-                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
-                            <h2 className="text-white font-semibold mb-3 text-sm flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-gray-400" />
+                        <div className="rounded-2xl p-5 border" style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
+                            <h2 className="font-semibold mb-3 text-sm flex items-center gap-2" style={{ color: '#2C3E50' }}>
+                                <Calendar className="w-4 h-4" style={{ color: '#94A3B8' }} />
                                 Booking Period
                             </h2>
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-gray-400 text-xs mb-1">Start Date</label>
+                                    <label className="block text-xs font-medium mb-1" style={{ color: '#64748B' }}>Start Date</label>
                                     <input
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
                                         min={new Date().toISOString().split('T')[0]}
-                                        className="w-full px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.1] text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [color-scheme:dark]"
+                                        className="w-full px-3 py-2 rounded-lg border text-sm outline-none transition-all [color-scheme:light]"
+                                        style={{ background: '#F8F7F4', borderColor: '#E8E4DF', color: '#1A2332' }}
+                                        onFocus={e => (e.target.style.borderColor = '#E85D3A')}
+                                        onBlur={e => (e.target.style.borderColor = '#E8E4DF')}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-gray-400 text-xs mb-1">End Date</label>
+                                    <label className="block text-xs font-medium mb-1" style={{ color: '#64748B' }}>End Date</label>
                                     <input
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
                                         min={startDate || new Date().toISOString().split('T')[0]}
-                                        className="w-full px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.1] text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [color-scheme:dark]"
+                                        className="w-full px-3 py-2 rounded-lg border text-sm outline-none transition-all [color-scheme:light]"
+                                        style={{ background: '#F8F7F4', borderColor: '#E8E4DF', color: '#1A2332' }}
+                                        onFocus={e => (e.target.style.borderColor = '#E85D3A')}
+                                        onBlur={e => (e.target.style.borderColor = '#E8E4DF')}
                                     />
                                 </div>
                                 {startDate && endDate && (
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs" style={{ color: '#94A3B8' }}>
                                         {Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} day(s) selected
                                     </p>
                                 )}
@@ -346,9 +349,10 @@ export default function BookingPage() {
                         <button
                             onClick={handleBookSelected}
                             disabled={selectedSeats.length === 0 || isBooking || !startDate || !endDate}
-                            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold 
-                         hover:from-blue-500 hover:to-purple-500 disabled:opacity-30 disabled:cursor-not-allowed 
-                         transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 text-sm"
+                            className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            style={{ background: '#E85D3A' }}
+                            onMouseEnter={e => !(selectedSeats.length === 0 || isBooking || !startDate || !endDate) && ((e.currentTarget as HTMLElement).style.background = '#D44E2C')}
+                            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '#E85D3A')}
                         >
                             {isBooking ? (
                                 <span className="flex items-center justify-center gap-2">
@@ -359,37 +363,38 @@ export default function BookingPage() {
                                     Booking...
                                 </span>
                             ) : (
-                                `Assign Seats to ${selectedCampaign?.name ?? 'Shift'} (${selectedSeats.length})`
+                                `Assign to ${selectedCampaign?.name ?? 'Shift'} (${selectedSeats.length} seat${selectedSeats.length !== 1 ? 's' : ''})`
                             )}
                         </button>
 
                         {/* My Bookings */}
-                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
-                            <h2 className="text-white font-semibold mb-3 text-sm">My Seat Assignments</h2>
+                        <div className="rounded-2xl p-5 border" style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
+                            <h2 className="font-semibold mb-3 text-sm" style={{ color: '#2C3E50' }}>My Seat Assignments</h2>
                             {bookingHistory.length === 0 ? (
-                                <p className="text-gray-500 text-xs">No bookings yet</p>
+                                <p className="text-xs" style={{ color: '#94A3B8' }}>No bookings yet</p>
                             ) : (
                                 <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                                     {bookingHistory.slice().reverse().map(booking => (
                                         <div
                                             key={booking.id}
-                                            className="flex items-center justify-between bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2"
+                                            className="flex items-center justify-between rounded-lg px-3 py-2 border"
+                                            style={{ background: '#F8F7F4', borderColor: '#E8E4DF' }}
                                         >
                                             <div>
-                                                <span className="text-gray-200 text-xs font-medium">{booking.seatLabel}</span>
-                                                <span className="text-gray-500 text-xs ml-2">({booking.campaignName} shift)</span>
-                                                <p className="text-gray-500 text-[10px] mt-0.5">
+                                                <span className="text-xs font-semibold" style={{ color: '#1A2332' }}>{booking.seatLabel}</span>
+                                                <span className="text-xs ml-2" style={{ color: '#94A3B8' }}>({booking.campaignName})</span>
+                                                <p className="text-[10px] mt-0.5" style={{ color: '#CBD5E1' }}>
                                                     {booking.startDate} → {booking.endDate}
                                                 </p>
                                             </div>
-                                            <span
-                                                className={`text-xs px-2 py-0.5 rounded-full font-medium ${booking.status === 'pending'
-                                                    ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
-                                                    : booking.status === 'approved'
-                                                        ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                                    }`}
-                                            >
+                                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium border`}
+                                                style={
+                                                    booking.status === 'pending'
+                                                        ? { background: 'rgba(245,158,11,0.1)', color: '#D97706', borderColor: 'rgba(245,158,11,0.25)' }
+                                                        : booking.status === 'approved'
+                                                            ? { background: 'rgba(107,174,127,0.1)', color: '#4D9765', borderColor: 'rgba(107,174,127,0.25)' }
+                                                            : { background: 'rgba(239,68,68,0.08)', color: '#DC2626', borderColor: 'rgba(239,68,68,0.2)' }
+                                                }>
                                                 {booking.status}
                                             </span>
                                         </div>
@@ -404,29 +409,33 @@ export default function BookingPage() {
             {/* Reset Confirmation Modal */}
             {showResetModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    {/* Backdrop */}
                     <div
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+                        className="absolute inset-0 animate-fade-in"
+                        style={{ background: 'rgba(44,62,80,0.5)', backdropFilter: 'blur(4px)' }}
                         onClick={() => setShowResetModal(false)}
                     />
-                    {/* Dialog */}
-                    <div className="relative bg-gray-900 border border-white/[0.1] rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-modal-up">
+                    <div className="relative rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-modal-up border"
+                        style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center shrink-0">
-                                <RotateCcw className="w-5 h-5 text-orange-400" />
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
+                                style={{ background: 'rgba(232,93,58,0.08)', borderColor: 'rgba(232,93,58,0.2)' }}>
+                                <RotateCcw className="w-5 h-5" style={{ color: '#E85D3A' }} />
                             </div>
                             <div>
-                                <h3 className="text-white font-semibold text-base">Reset Layout</h3>
-                                <p className="text-gray-500 text-xs mt-0.5">This action cannot be undone</p>
+                                <h3 className="font-semibold text-base" style={{ color: '#1A2332' }}>Reset Layout</h3>
+                                <p className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>This action cannot be undone</p>
                             </div>
                         </div>
-                        <p className="text-gray-300 text-sm mb-6">
+                        <p className="text-sm mb-6" style={{ color: '#64748B' }}>
                             All bookings will be cleared and every seat will be freed. Are you sure you want to continue?
                         </p>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowResetModal(false)}
-                                className="flex-1 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-sm font-medium transition-all"
+                                className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all border"
+                                style={{ background: '#F8F7F4', borderColor: '#E8E4DF', color: '#64748B' }}
+                                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = '#EDE8E1')}
+                                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '#F8F7F4')}
                             >
                                 Cancel
                             </button>
@@ -439,7 +448,10 @@ export default function BookingPage() {
                                     setIsResetting(false);
                                     showToast('Layout reset — all seats are now available.');
                                 }}
-                                className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold transition-all shadow-lg shadow-orange-500/20"
+                                className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition-all"
+                                style={{ background: '#E85D3A' }}
+                                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = '#D44E2C')}
+                                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '#E85D3A')}
                             >
                                 Reset
                             </button>
@@ -451,7 +463,8 @@ export default function BookingPage() {
             {/* Toast */}
             {toast && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce-in">
-                    <div className="bg-gray-800 border border-white/[0.1] text-white text-sm px-6 py-3 rounded-xl shadow-2xl backdrop-blur-md">
+                    <div className="text-white text-sm px-6 py-3 rounded-xl shadow-lg whitespace-nowrap"
+                        style={{ background: '#2C3E50' }}>
                         {toast}
                     </div>
                 </div>
