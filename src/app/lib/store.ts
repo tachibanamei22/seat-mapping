@@ -15,7 +15,15 @@
 
 import { supabase } from './supabase';
 import { Seat, Booking, SeatGroup } from '../types';
+import type { SeatRow, BookingRow } from './database.types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+
+// The generated Database type doesn't satisfy the Supabase SDK's GenericSchema
+// constraint (a known issue with hand-written type files vs supabase gen).
+// Using an untyped alias here keeps store.ts DRY while the rest of the app
+// stays fully typed via explicit casts on the returned data.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
 
 // ==================== SEAT LAYOUT DATA ====================
 
@@ -87,7 +95,7 @@ export function getDefaultSeatGroups(): SeatGroup[] {
 // ==================== SUPABASE HELPERS ====================
 
 export async function initializeStore(): Promise<void> {
-    const { count } = await supabase
+    const { count } = await db
         .from('seats')
         .select('id', { count: 'exact', head: true });
 
@@ -109,17 +117,18 @@ export async function initializeStore(): Promise<void> {
     );
 
     for (let i = 0; i < rows.length; i += 100) {
-        await supabase.from('seats').insert(rows.slice(i, i + 100));
+        await db.from('seats').insert(rows.slice(i, i + 100));
     }
 }
 
 export async function getSeatGroups(): Promise<SeatGroup[]> {
-    const { data, error } = await supabase
+    const { data: raw, error } = await db
         .from('seats')
         .select('*')
         .order('group_id')
         .order('row_num')
         .order('col_num');
+    const data = raw as SeatRow[] | null;
 
     if (error) throw error;
 
@@ -154,10 +163,11 @@ export async function getSeatGroups(): Promise<SeatGroup[]> {
 }
 
 export async function getBookings(): Promise<Booking[]> {
-    const { data, error } = await supabase
+    const { data: raw, error } = await db
         .from('bookings')
         .select('*')
         .order('created_at', { ascending: false });
+    const data = raw as BookingRow[] | null;
 
     if (error) throw error;
 
@@ -177,7 +187,7 @@ export async function getBookings(): Promise<Booking[]> {
 }
 
 export async function addBooking(booking: Booking): Promise<void> {
-    const { error: bookErr } = await supabase.from('bookings').insert({
+    const { error: bookErr } = await db.from('bookings').insert({
         id: booking.id,
         seat_id: booking.seatId,
         seat_label: booking.seatLabel,
@@ -192,7 +202,7 @@ export async function addBooking(booking: Booking): Promise<void> {
     });
     if (bookErr) throw bookErr;
 
-    const { error: seatErr } = await supabase
+    const { error: seatErr } = await db
         .from('seats')
         .update({ status: 'pending', campaign_id: booking.campaignId, booking_id: booking.id })
         .eq('id', booking.seatId);
@@ -200,28 +210,30 @@ export async function addBooking(booking: Booking): Promise<void> {
 }
 
 export async function approveBooking(bookingId: string): Promise<void> {
-    const { data: booking, error: fetchErr } = await supabase
+    const { data: raw, error: fetchErr } = await db
         .from('bookings').select('seat_id').eq('id', bookingId).single();
+    const booking = raw as Pick<BookingRow, 'seat_id'> | null;
     if (fetchErr) throw fetchErr;
 
-    await supabase.from('bookings').update({ status: 'approved' }).eq('id', bookingId);
-    await supabase.from('seats').update({ status: 'approved' }).eq('id', booking.seat_id);
+    await db.from('bookings').update({ status: 'approved' }).eq('id', bookingId);
+    await db.from('seats').update({ status: 'approved' }).eq('id', booking!.seat_id);
 }
 
 export async function rejectBooking(bookingId: string): Promise<void> {
-    const { data: booking, error: fetchErr } = await supabase
+    const { data: raw, error: fetchErr } = await db
         .from('bookings').select('seat_id').eq('id', bookingId).single();
+    const booking = raw as Pick<BookingRow, 'seat_id'> | null;
     if (fetchErr) throw fetchErr;
 
-    await supabase.from('bookings').update({ status: 'rejected' }).eq('id', bookingId);
-    await supabase.from('seats')
+    await db.from('bookings').update({ status: 'rejected' }).eq('id', bookingId);
+    await db.from('seats')
         .update({ status: 'available', campaign_id: null, booking_id: null })
-        .eq('id', booking.seat_id);
+        .eq('id', booking!.seat_id);
 }
 
 export async function resetStore(): Promise<void> {
-    await supabase.from('bookings').delete().neq('id', '');
-    await supabase.from('seats')
+    await db.from('bookings').delete().neq('id', '');
+    await db.from('seats')
         .update({ status: 'available', campaign_id: null, booking_id: null })
         .neq('id', '');
 }

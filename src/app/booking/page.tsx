@@ -244,7 +244,7 @@ export default function BookingPage() {
                                 <span className="text-gray-400 text-xs">Pending approval</span>
                             </div>
                             {/* Campaign colors for approved seats */}
-                            <span className="text-gray-600 text-xs self-center">Approved -></span>
+                            <span className="text-gray-600 text-xs self-center">Approved →</span>
                             {SHIFTS.map(s => (
                                 <div key={s.id} className="flex items-center gap-1.5">
                                     <div className="w-5 h-3.5 rounded-sm" style={{ backgroundColor: s.color }} />
@@ -379,7 +379,7 @@ export default function BookingPage() {
                                                 <span className="text-gray-200 text-xs font-medium">{booking.seatLabel}</span>
                                                 <span className="text-gray-500 text-xs ml-2">({booking.campaignName} shift)</span>
                                                 <p className="text-gray-500 text-[10px] mt-0.5">
-                                                    {booking.startDate} -> {booking.endDate}
+                                                    {booking.startDate} → {booking.endDate}
                                                 </p>
                                             </div>
                                             <span

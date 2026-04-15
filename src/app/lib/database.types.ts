@@ -4,22 +4,28 @@
  * Matches the SQL in /supabase/migrations/001_initial.sql
  */
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       seats: {
         Row: SeatRow;
         Insert: Omit<SeatRow, 'updated_at'> & { updated_at?: string };
         Update: Partial<SeatRow>;
+        Relationships: [];
       };
       bookings: {
         Row: BookingRow;
         Insert: Omit<BookingRow, 'created_at'> & { created_at?: string };
         Update: Partial<BookingRow>;
+        Relationships: [];
       };
     };
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
-}
+};
 
 export interface SeatRow {
   id: string;

@@ -106,16 +106,6 @@ export default function AdminPage() {
         setTimeout(() => setToast(null), 3500);
     };
 
-    // Single approve/reject
-    const handleApprove = async (bookingId: string) => {
-        try { await approveBooking(bookingId); await loadData(); showToast('Seat approved!'); }
-        catch (e: any) { showToast(`Error: ${e.message}`); }
-    };
-    const handleReject = async (bookingId: string) => {
-        try { await rejectBooking(bookingId); await loadData(); showToast('Assignment rejected.'); }
-        catch (e: any) { showToast(`Error: ${e.message}`); }
-    };
-
     // Bulk approve/reject entire session group
     const handleBulkApprove = async (group: BookingGroup) => {
         setBulkLoading(group.key);
