@@ -58,7 +58,7 @@ export default function FloorMap({ seatGroups, onSeatClick, isSelectable = true 
                             border: '1px solid #D4CFC9',
                         }}
                     >
-                        <span style={{ color: '#94A3B8', fontSize: '9px', fontWeight: 600, letterSpacing: '0.02em' }}>
+                        <span style={{ color: '#64748B', fontSize: '9px', fontWeight: 700, letterSpacing: '0.02em' }}>
                             {facility.label}
                         </span>
                     </div>
@@ -105,7 +105,7 @@ export default function FloorMap({ seatGroups, onSeatClick, isSelectable = true 
                     className="absolute right-[2%] top-[20%] w-[3%] h-[15%] rounded flex items-center justify-center"
                     style={{ border: '1px solid #D4CFC9', background: '#FFFFFF' }}
                 >
-                    <span style={{ color: '#94A3B8', fontSize: '7px', writingMode: 'vertical-rl', whiteSpace: 'nowrap' }}>
+                    <span style={{ color: '#64748B', fontSize: '7px', fontWeight: 700, writingMode: 'vertical-rl', whiteSpace: 'nowrap' }}>
                         Entrance
                     </span>
                 </div>

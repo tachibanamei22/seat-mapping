@@ -189,7 +189,7 @@ export default function BookingPage() {
                                     <div className="text-xl font-bold" style={{ color: stat.accent }}>
                                         {stat.value}
                                     </div>
-                                    <div className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{stat.label}</div>
+                                    <div className="text-xs mt-0.5 font-medium" style={{ color: '#64748B' }}>{stat.label}</div>
                                 </div>
                             ))}
                         </div>
@@ -223,7 +223,7 @@ export default function BookingPage() {
                                     </div>
                                     <div className="text-center">
                                         <p className="text-sm font-semibold" style={{ color: '#E85D3A' }}>Resetting layout</p>
-                                        <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>Clearing all bookings...</p>
+                                        <p className="text-xs mt-1" style={{ color: '#64748B' }}>Clearing all bookings...</p>
                                     </div>
                                 </div>
                             )}
@@ -243,7 +243,7 @@ export default function BookingPage() {
                                 <div className="w-5 h-3.5 rounded-sm border" style={{ borderColor: '#F59E0B', background: 'rgba(245,158,11,0.15)' }} />
                                 <span className="text-xs" style={{ color: '#64748B' }}>Pending</span>
                             </div>
-                            <span className="text-xs self-center" style={{ color: '#CBD5E1' }}>Approved →</span>
+                            <span className="text-xs self-center font-medium" style={{ color: '#64748B' }}>Approved →</span>
                             {SHIFTS.map(s => (
                                 <div key={s.id} className="flex items-center gap-1.5">
                                     <div className="w-5 h-3.5 rounded-sm" style={{ backgroundColor: s.color }} />
@@ -262,7 +262,7 @@ export default function BookingPage() {
                                 {(Object.entries(shiftsByTier()) as [keyof typeof TIER_LABELS, typeof SHIFTS[0][]][]).map(([tier, shifts]) => (
                                     <div key={tier}>
                                         <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5 px-1"
-                                            style={{ color: '#94A3B8' }}>
+                                            style={{ color: '#64748B' }}>
                                             {TIER_LABELS[tier]}
                                         </p>
                                         <div className="grid grid-cols-1 gap-1">
@@ -294,7 +294,7 @@ export default function BookingPage() {
                                                     >
                                                         <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: shift.color }} />
                                                         <span className="font-semibold" style={{ color: '#2C3E50' }}>{shift.name}</span>
-                                                        <span className="ml-auto" style={{ color: '#94A3B8' }}>{shift.hours}</span>
+                                                        <span className="ml-auto" style={{ color: '#64748B' }}>{shift.hours}</span>
                                                     </button>
                                                 );
                                             })}
@@ -312,7 +312,7 @@ export default function BookingPage() {
                             </h2>
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-xs font-medium mb-1" style={{ color: '#64748B' }}>Start Date</label>
+                                    <label className="block text-xs font-semibold mb-1" style={{ color: '#475569' }}>Start Date</label>
                                     <input
                                         type="date"
                                         value={startDate}
@@ -325,7 +325,7 @@ export default function BookingPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium mb-1" style={{ color: '#64748B' }}>End Date</label>
+                                    <label className="block text-xs font-semibold mb-1" style={{ color: '#475569' }}>End Date</label>
                                     <input
                                         type="date"
                                         value={endDate}
@@ -338,7 +338,7 @@ export default function BookingPage() {
                                     />
                                 </div>
                                 {startDate && endDate && (
-                                    <p className="text-xs" style={{ color: '#94A3B8' }}>
+                                    <p className="text-xs font-medium" style={{ color: '#64748B' }}>
                                         {Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} day(s) selected
                                     </p>
                                 )}
@@ -371,7 +371,7 @@ export default function BookingPage() {
                         <div className="rounded-2xl p-5 border" style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
                             <h2 className="font-semibold mb-3 text-sm" style={{ color: '#2C3E50' }}>My Seat Assignments</h2>
                             {bookingHistory.length === 0 ? (
-                                <p className="text-xs" style={{ color: '#94A3B8' }}>No bookings yet</p>
+                                <p className="text-xs" style={{ color: '#64748B' }}>No bookings yet</p>
                             ) : (
                                 <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                                     {bookingHistory.slice().reverse().map(booking => (
@@ -382,8 +382,8 @@ export default function BookingPage() {
                                         >
                                             <div>
                                                 <span className="text-xs font-semibold" style={{ color: '#1A2332' }}>{booking.seatLabel}</span>
-                                                <span className="text-xs ml-2" style={{ color: '#94A3B8' }}>({booking.campaignName})</span>
-                                                <p className="text-[10px] mt-0.5" style={{ color: '#CBD5E1' }}>
+                                                <span className="text-xs ml-2" style={{ color: '#64748B' }}>({booking.campaignName})</span>
+                                                <p className="text-[10px] mt-0.5" style={{ color: '#94A3B8' }}>
                                                     {booking.startDate} → {booking.endDate}
                                                 </p>
                                             </div>
@@ -423,7 +423,7 @@ export default function BookingPage() {
                             </div>
                             <div>
                                 <h3 className="font-semibold text-base" style={{ color: '#1A2332' }}>Reset Layout</h3>
-                                <p className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>This action cannot be undone</p>
+                                <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>This action cannot be undone</p>
                             </div>
                         </div>
                         <p className="text-sm mb-6" style={{ color: '#64748B' }}>

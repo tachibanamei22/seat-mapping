@@ -30,9 +30,9 @@ export default function SeatComponent({ seat, onClick, isSelectable = true, size
         switch (seat.status) {
             case 'available':
                 return {
-                    backgroundColor: hovered ? 'rgba(107,174,127,0.18)' : 'rgba(107,174,127,0.07)',
-                    borderColor: hovered ? '#4D9765' : '#6BAE7F',
-                    color: hovered ? '#2C6645' : '#4D9765',
+                    backgroundColor: hovered ? 'rgba(107,174,127,0.22)' : '#FFFFFF',
+                    borderColor: hovered ? '#3D8A56' : '#6BAE7F',
+                    color: '#1B5E37',
                     transform: hovered ? 'scale(1.12)' : 'scale(1)',
                     boxShadow: hovered ? '0 0 8px rgba(107,174,127,0.35)' : 'none',
                 };
@@ -46,9 +46,9 @@ export default function SeatComponent({ seat, onClick, isSelectable = true, size
                 };
             case 'pending':
                 return {
-                    backgroundColor: hovered ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)',
-                    borderColor: '#F59E0B',
-                    color: '#B45309',
+                    backgroundColor: hovered ? 'rgba(245,158,11,0.22)' : 'rgba(245,158,11,0.14)',
+                    borderColor: '#D97706',
+                    color: '#7C4700',
                     cursor: 'not-allowed',
                 };
             case 'approved':

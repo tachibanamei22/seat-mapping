@@ -187,7 +187,7 @@ export default function AdminPage() {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <div className="text-2xl font-bold" style={{ color: accent }}>{value}</div>
-                                            <div className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{label}</div>
+                                            <div className="text-xs mt-0.5 font-medium" style={{ color: '#64748B' }}>{label}</div>
                                         </div>
                                         <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: bg }}>
                                             <Icon className="w-5 h-5" style={{ color: accent }} />
@@ -204,7 +204,7 @@ export default function AdminPage() {
 
                         {/* Legend */}
                         <div className="mt-4 flex flex-wrap gap-3 px-1">
-                            <span className="text-xs self-center" style={{ color: '#94A3B8' }}>Shift colors:</span>
+                            <span className="text-xs font-medium self-center" style={{ color: '#64748B' }}>Shift colors:</span>
                             {SHIFTS.map(c => (
                                 <div key={c.id} className="flex items-center gap-1.5">
                                     <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: c.color }} />
@@ -255,7 +255,7 @@ export default function AdminPage() {
                             <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-1">
                                 {filteredGroups.length === 0 ? (
                                     <div className="text-center py-10">
-                                        <p className="text-sm" style={{ color: '#94A3B8' }}>No {filter === 'all' ? '' : filter} assignments</p>
+                                        <p className="text-sm" style={{ color: '#64748B' }}>No {filter === 'all' ? '' : filter} assignments</p>
                                     </div>
                                 ) : (
                                     filteredGroups.map(group => {
@@ -271,7 +271,7 @@ export default function AdminPage() {
                                                     ? { bg: 'rgba(107,174,127,0.08)', color: '#4D9765', border: 'rgba(107,174,127,0.2)' }
                                                     : group.status === 'rejected'
                                                         ? { bg: 'rgba(239,68,68,0.06)', color: '#DC2626', border: 'rgba(239,68,68,0.15)' }
-                                                        : { bg: 'rgba(0,0,0,0.03)', color: '#94A3B8', border: 'rgba(0,0,0,0.08)' };
+                                                        : { bg: 'rgba(0,0,0,0.04)', color: '#475569', border: 'rgba(0,0,0,0.12)' };
 
                                         return (
                                             <div
@@ -294,11 +294,11 @@ export default function AdminPage() {
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>
+                                                            <p className="text-xs mt-1" style={{ color: '#64748B' }}>
                                                                 by <span style={{ color: '#2C3E50', fontWeight: 600 }}>{group.username}</span>
                                                                 {' · '}{new Date(group.timestamp).toLocaleString()}
                                                             </p>
-                                                            <p className="text-xs mt-0.5" style={{ color: '#CBD5E1' }}>
+                                                            <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>
                                                                 {group.startDate} — {group.endDate}
                                                             </p>
                                                         </div>
