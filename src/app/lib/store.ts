@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * store.ts — Upgraded for Supabase real-time
+ * store.ts - Upgraded for Supabase real-time
  * ============================================
  * All seat and booking state now lives in Supabase Postgres instead of
  * localStorage, enabling real-time multi-user synchronisation.
  *
  * Changes from original:
- *  - localStorage helpers → Supabase CRUD functions
+ *  - localStorage helpers -> Supabase CRUD functions
  *  - New: subscribeToSeats() / subscribeToBookings() for live updates
  *  - getDefaultSeatGroups() kept as-is for initial DB seeding
  *  - initializeStore() now seeds Supabase on first run
@@ -229,7 +229,7 @@ export async function resetStore(): Promise<void> {
 // ==================== REAL-TIME SUBSCRIPTIONS ====================
 
 /**
- * Subscribe to seat changes. Returns the channel — unsubscribe on cleanup.
+ * Subscribe to seat changes. Returns the channel - unsubscribe on cleanup.
  *
  * Usage in a React component:
  *   useEffect(() => {
@@ -249,10 +249,4 @@ export function subscribeToSeats(callback: () => void): RealtimeChannel {
         .subscribe();
 }
 
-export function subscribeToBookings(callback: () => void): RealtimeChannel {
-    const id = Math.random().toString(36).slice(2, 8);
-    return supabase
-        .channel(`bookings-rt-${id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => callback())
-        .subscribe();
-}
+export function subscribeToBookings(callback: () => void
