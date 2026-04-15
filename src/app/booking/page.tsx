@@ -51,7 +51,7 @@ export default function BookingPage() {
         loadData();
     }, [loadData]);
 
-    // Real-time subscriptions — refresh whenever DB changes
+    // Real-time subscriptions - refresh whenever DB changes
     useEffect(() => {
         const seatsCh = subscribeToSeats(() => loadData());
         const bookingsCh = subscribeToBookings(() => loadData());
@@ -74,7 +74,7 @@ export default function BookingPage() {
         // Only available seats can be selected; already-selected can be deselected
         if (seat.status !== 'available' && seat.status !== 'selected') return;
 
-        // Update local UI state only — Supabase write happens on "Book" click
+        // Update local UI state only - Supabase write happens on "Book" click
         setSeatGroups(prev => prev.map(group => ({
             ...group,
             seats: group.seats.map(s => {
@@ -155,7 +155,7 @@ export default function BookingPage() {
                             onClick={async () => {
                                 if (confirm('Reset all bookings? All seats will be freed.')) {
                                     await resetStore();
-                                    showToast('Layout reset — all seats are now available.');
+                                    showToast('Layout reset - all seats are now available.');
                                 }
                             }}
                             className="px-4 py-2 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-sm transition-all"
@@ -218,7 +218,7 @@ export default function BookingPage() {
                                 <span className="text-gray-400 text-xs">Pending approval</span>
                             </div>
                             {/* Campaign colors for approved seats */}
-                            <span className="text-gray-600 text-xs self-center">Approved →</span>
+                            <span className="text-gray-600 text-xs self-center">Approved -></span>
                             {SHIFTS.map(s => (
                                 <div key={s.id} className="flex items-center gap-1.5">
                                     <div className="w-5 h-3.5 rounded-sm" style={{ backgroundColor: s.color }} />
@@ -230,7 +230,7 @@ export default function BookingPage() {
 
                     {/* Sidebar */}
                     <div className="space-y-5">
-                        {/* Shift Selector — grouped by tier */}
+                        {/* Shift Selector - grouped by tier */}
                         <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
                             <h2 className="text-white font-semibold mb-3 text-sm">Select Shift</h2>
                             <div className="space-y-3">
@@ -355,7 +355,7 @@ export default function BookingPage() {
                                                 <span className="text-gray-200 text-xs font-medium">{booking.seatLabel}</span>
                                                 <span className="text-gray-500 text-xs ml-2">({booking.campaignName} shift)</span>
                                                 <p className="text-gray-500 text-[10px] mt-0.5">
-                                                    {booking.startDate} → {booking.endDate}
+                                                    {booking.startDate} -> {booking.endDate}
                                                 </p>
                                             </div>
                                             <span
@@ -383,8 +383,4 @@ export default function BookingPage() {
                     <div className="bg-gray-800 border border-white/[0.1] text-white text-sm px-6 py-3 rounded-xl shadow-2xl backdrop-blur-md">
                         {toast}
                     </div>
-                </div>
-            )}
-        </div>
-    );
-}
+                <

@@ -12,11 +12,11 @@ interface SeatComponentProps {
 
 /**
  * Color scheme:
- *   available  → transparent fill, green border  (subtle — just "I'm free")
- *   hover      → soft green fill (20% opacity) + border brightens
- *   selected   → solid bright green (user claimed it this session)
- *   pending    → amber border + semi-transparent fill
- *   approved   → full campaign color fill (visual project ownership on the map)
+ *   available  -> transparent fill, green border  (subtle - just "I'm free")
+ *   hover      -> soft green fill (20% opacity) + border brightens
+ *   selected   -> solid bright green (user claimed it this session)
+ *   pending    -> amber border + semi-transparent fill
+ *   approved   -> full campaign color fill (visual project ownership on the map)
  */
 export default function SeatComponent({ seat, onClick, isSelectable = true, size = 'md' }: SeatComponentProps) {
     const [hovered, setHovered] = useState(false);
@@ -52,7 +52,7 @@ export default function SeatComponent({ seat, onClick, isSelectable = true, size
                     cursor: 'not-allowed',
                 };
             case 'approved':
-                // Campaign color fill — shows project ownership at a glance
+                // Campaign color fill - shows project ownership at a glance
                 return {
                     backgroundColor: campaignColor,
                     borderColor: campaignColor,
@@ -74,8 +74,8 @@ export default function SeatComponent({ seat, onClick, isSelectable = true, size
         : 'w-[48px] h-[30px] text-[8px]';
 
     const tooltipText = seat.status === 'approved' && campaign
-        ? `${seat.label} — ${campaign.name} shift (approved)`
-        : `${seat.label} — ${seat.status}`;
+        ? `${seat.label} - ${campaign.name} shift (approved)`
+        : `${seat.label} - ${seat.status}`;
 
     return (
         <button

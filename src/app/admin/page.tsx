@@ -14,7 +14,7 @@ import {
 } from '../lib/store';
 import FloorMap from '../components/FloorMap';
 
-// ── Group assignments into sessions ──────────────────────────────────────────────
+// - Group assignments into sessions -----------------------
 // A "session" = same user + same campaign + same date range + submitted within 10s
 interface BookingGroup {
     key: string;
@@ -185,14 +185,14 @@ export default function AdminPage() {
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6">
                 <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-6">
 
-                    {/* Left — Floor Map */}
+                    {/* Left - Floor Map */}
                     <div>
                         {/* Stats */}
                         <div className="grid grid-cols-3 gap-3 mb-5">
                             {[
-                                { label: 'Pending', value: pendingCount, color: 'from-yellow-500 to-orange-500', icon: '⏳' },
-                                { label: 'Approved', value: approvedCount, color: 'from-green-500 to-emerald-500', icon: '✅' },
-                                { label: 'Rejected', value: rejectedCount, color: 'from-red-500 to-pink-500', icon: '❌' },
+                                { label: 'Pending', value: pendingCount, color: 'from-yellow-500 to-orange-500', icon: '...' },
+                                { label: 'Approved', value: approvedCount, color: 'from-green-500 to-emerald-500', icon: 'OK' },
+                                { label: 'Rejected', value: rejectedCount, color: 'from-red-500 to-pink-500', icon: 'X' },
                             ].map(stat => (
                                 <div key={stat.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
                                     <div className="flex items-center justify-between">
@@ -233,7 +233,7 @@ export default function AdminPage() {
                         </div>
                     </div>
 
-                    {/* Right — Bookings Panel */}
+                    {/* Right - Bookings Panel */}
                     <div>
                         <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 sticky top-20">
                             <div className="flex items-center justify-between mb-4">
@@ -294,10 +294,10 @@ export default function AdminPage() {
                                                             </div>
                                                             <p className="text-gray-500 text-xs mt-1">
                                                                 by <span className="text-gray-300">{group.username}</span>
-                                                                {' · '}{new Date(group.timestamp).toLocaleString()}
+                                                                {' | '}{new Date(group.timestamp).toLocaleString()}
                                                             </p>
                                                             <p className="text-gray-500 text-xs mt-0.5">
-                                                                📅 {group.startDate} → {group.endDate}
+                                                                {group.startDate} - {group.endDate}
                                                             </p>
                                                         </div>
                                                         {/* Status badge */}
@@ -328,7 +328,7 @@ export default function AdminPage() {
                                                     </div>
                                                 </div>
 
-                                                {/* Bulk action buttons — only if any pending seats */}
+                                                {/* Bulk action buttons - only if any pending seats */}
                                                 {pendingInGroup.length > 0 && (
                                                     <div className="px-4 pb-4 pt-1 flex gap-2">
                                                         <button
@@ -341,7 +341,7 @@ export default function AdminPage() {
                                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                                                                 </svg>
-                                                            ) : '✓'}
+                                                            ) : 'v'}
                                                             {isMultiple ? `Approve all ${pendingInGroup.length}` : 'Approve'}
                                                         </button>
                                                         <button
@@ -354,7 +354,7 @@ export default function AdminPage() {
                                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                                                                 </svg>
-                                                            ) : '✕'}
+                                                            ) : 'x'}
                                                             {isMultiple ? `Reject all ${pendingInGroup.length}` : 'Reject'}
                                                         </button>
                                                     </div>
@@ -374,10 +374,3 @@ export default function AdminPage() {
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce">
                     <div className="bg-gray-800 border border-white/[0.1] text-white text-sm px-6 py-3 rounded-xl shadow-2xl backdrop-blur-md whitespace-nowrap">
                         {toast}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
-         
