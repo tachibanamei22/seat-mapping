@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { SHIFTS, Seat, SeatGroup, Booking, Shift, shiftsByTier, TIER_LABELS } from '../types';
+import { Building2, Calendar, LogOut, RotateCcw } from 'lucide-react';
 import {
     getSeatGroups,
     addBooking,
@@ -26,6 +27,8 @@ export default function BookingPage() {
     const [bookingHistory, setBookingHistory] = useState<Booking[]>([]);
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
+    const [showResetModal, setShowResetModal] = useState(false);
+    const [isResetting, setIsResetting] = useState(false);
 
     // Auth guard
     useEffect(() => {
@@ -141,9 +144,7 @@ export default function BookingPage() {
                 <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
+                            <Building2 className="w-5 h-5 text-white" />
                         </div>
                         <div>
                             <h1 className="text-white font-bold text-lg leading-tight">Seat Mapping</h1>
@@ -152,20 +153,17 @@ export default function BookingPage() {
                     </div>
                     <div className="flex gap-2">
                         <button
-                            onClick={async () => {
-                                if (confirm('Reset all bookings? All seats will be freed.')) {
-                                    await resetStore();
-                                    showToast('Layout reset - all seats are now available.');
-                                }
-                            }}
-                            className="px-4 py-2 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-sm transition-all"
+                            onClick={() => setShowResetModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-sm transition-all"
                         >
+                            <RotateCcw className="w-4 h-4" />
                             Reset Layout
                         </button>
                         <button
                             onClick={() => { logout(); router.push('/'); }}
-                            className="px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-sm transition-all"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-sm transition-all"
                         >
+                            <LogOut className="w-4 h-4" />
                             Logout
                         </button>
                     </div>
@@ -194,12 +192,40 @@ export default function BookingPage() {
                         </div>
 
                         {/* Floor Map */}
-                        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6">
-                            <FloorMap
-                                seatGroups={seatGroups}
-                                onSeatClick={handleSeatClick}
-                                isSelectable={true}
-                            />
+                        <div className="relative bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6 overflow-hidden">
+                            <div className={`transition-opacity duration-500 ${isResetting ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
+                                <FloorMap
+                                    seatGroups={seatGroups}
+                                    onSeatClick={handleSeatClick}
+                                    isSelectable={true}
+                                />
+                            </div>
+                            {isResetting && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 animate-fade-in">
+                                    <div className="relative w-14 h-14">
+                                        {/* Outer ring */}
+                                        <div className="absolute inset-0 rounded-full border-2 border-orange-500/20" />
+                                        {/* Spinning arc */}
+                                        <svg className="absolute inset-0 w-full h-full animate-reset-spin" viewBox="0 0 56 56" fill="none">
+                                            <circle cx="28" cy="28" r="26" stroke="url(#og)" strokeWidth="2" strokeLinecap="round" strokeDasharray="60 100" />
+                                            <defs>
+                                                <linearGradient id="og" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                                                    <stop stopColor="#f97316" />
+                                                    <stop offset="1" stopColor="#fb923c" stopOpacity="0" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                        {/* Center icon */}
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <RotateCcw className="w-5 h-5 text-orange-400" />
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-orange-300 text-sm font-semibold">Resetting layout</p>
+                                        <p className="text-gray-500 text-xs mt-1">Clearing all bookings...</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Legend */}
@@ -284,9 +310,7 @@ export default function BookingPage() {
                         {/* Booking Period */}
                         <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
                             <h2 className="text-white font-semibold mb-3 text-sm flex items-center gap-2">
-                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
+                                <Calendar className="w-4 h-4 text-gray-400" />
                                 Booking Period
                             </h2>
                             <div className="space-y-3">
@@ -376,6 +400,53 @@ export default function BookingPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Reset Confirmation Modal */}
+            {showResetModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+                        onClick={() => setShowResetModal(false)}
+                    />
+                    {/* Dialog */}
+                    <div className="relative bg-gray-900 border border-white/[0.1] rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-modal-up">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center shrink-0">
+                                <RotateCcw className="w-5 h-5 text-orange-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-white font-semibold text-base">Reset Layout</h3>
+                                <p className="text-gray-500 text-xs mt-0.5">This action cannot be undone</p>
+                            </div>
+                        </div>
+                        <p className="text-gray-300 text-sm mb-6">
+                            All bookings will be cleared and every seat will be freed. Are you sure you want to continue?
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowResetModal(false)}
+                                className="flex-1 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-sm font-medium transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    setShowResetModal(false);
+                                    setIsResetting(true);
+                                    await resetStore();
+                                    await loadData();
+                                    setIsResetting(false);
+                                    showToast('Layout reset — all seats are now available.');
+                                }}
+                                className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold transition-all shadow-lg shadow-orange-500/20"
+                            >
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Toast */}
             {toast && (

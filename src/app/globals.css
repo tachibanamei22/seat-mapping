@@ -47,6 +47,31 @@ body {
   animation: bounce-in 0.3s ease-out;
 }
 
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+@keyframes modal-up {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.animate-modal-up {
+  animation: modal-up 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes reset-spin {
+  0%   { transform: rotate(0deg);   opacity: 1;    }
+  50%  { transform: rotate(180deg); opacity: 0.6;  }
+  100% { transform: rotate(360deg); opacity: 1;    }
+}
+.animate-reset-spin {
+  animation: reset-spin 1s linear infinite;
+}
+
 /* Seat hover glow effect */
 @keyframes pulse-glow {
   0%, 100% {

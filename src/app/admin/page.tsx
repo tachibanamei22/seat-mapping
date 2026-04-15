@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { Booking, SeatGroup, getShiftById, SHIFTS } from '../types';
+import { ShieldCheck, Clock, CheckCircle2, XCircle, Check, X, LogOut } from 'lucide-react';
 import {
     getSeatGroups,
     getBookings,
@@ -164,9 +165,7 @@ export default function AdminPage() {
                 <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
+                            <ShieldCheck className="w-5 h-5 text-white" />
                         </div>
                         <div>
                             <h1 className="text-white font-bold text-lg leading-tight">Admin Panel</h1>
@@ -175,8 +174,9 @@ export default function AdminPage() {
                     </div>
                     <button
                         onClick={() => { logout(); router.push('/'); }}
-                        className="px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-sm transition-all"
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-sm transition-all"
                     >
+                        <LogOut className="w-4 h-4" />
                         Logout
                     </button>
                 </div>
@@ -190,19 +190,19 @@ export default function AdminPage() {
                         {/* Stats */}
                         <div className="grid grid-cols-3 gap-3 mb-5">
                             {[
-                                { label: 'Pending', value: pendingCount, color: 'from-yellow-500 to-orange-500', icon: '...' },
-                                { label: 'Approved', value: approvedCount, color: 'from-green-500 to-emerald-500', icon: 'OK' },
-                                { label: 'Rejected', value: rejectedCount, color: 'from-red-500 to-pink-500', icon: 'X' },
-                            ].map(stat => (
-                                <div key={stat.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+                                { label: 'Pending',  value: pendingCount,  color: 'from-yellow-500 to-orange-500', Icon: Clock },
+                                { label: 'Approved', value: approvedCount, color: 'from-green-500 to-emerald-500',  Icon: CheckCircle2 },
+                                { label: 'Rejected', value: rejectedCount, color: 'from-red-500 to-pink-500',      Icon: XCircle },
+                            ].map(({ label, value, color, Icon }) => (
+                                <div key={label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <div className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-                                                {stat.value}
+                                            <div className={`text-2xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
+                                                {value}
                                             </div>
-                                            <div className="text-gray-500 text-xs mt-0.5">{stat.label}</div>
+                                            <div className="text-gray-500 text-xs mt-0.5">{label}</div>
                                         </div>
-                                        <span className="text-2xl">{stat.icon}</span>
+                                        <Icon className="w-6 h-6 text-gray-600" />
                                     </div>
                                 </div>
                             ))}
@@ -336,12 +336,9 @@ export default function AdminPage() {
                                                             disabled={isBulkLoading}
                                                             className="flex-1 py-2 rounded-lg bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-xs font-semibold transition-all shadow-lg shadow-green-500/20 flex items-center justify-center gap-1.5"
                                                         >
-                                                            {isBulkLoading ? (
-                                                                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                                                                </svg>
-                                                            ) : 'v'}
+                                                            {isBulkLoading
+                                                                ? <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                                                : <Check className="w-3.5 h-3.5" />}
                                                             {isMultiple ? `Approve all ${pendingInGroup.length}` : 'Approve'}
                                                         </button>
                                                         <button
@@ -349,12 +346,9 @@ export default function AdminPage() {
                                                             disabled={isBulkLoading}
                                                             className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-semibold transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-1.5"
                                                         >
-                                                            {isBulkLoading ? (
-                                                                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                                                                </svg>
-                                                            ) : 'x'}
+                                                            {isBulkLoading
+                                                                ? <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                                                : <X className="w-3.5 h-3.5" />}
                                                             {isMultiple ? `Reject all ${pendingInGroup.length}` : 'Reject'}
                                                         </button>
                                                     </div>
