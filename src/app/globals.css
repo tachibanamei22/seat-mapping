@@ -3,32 +3,37 @@
 @tailwind utilities;
 
 :root {
-  --background: #030712;
-  --foreground: #f9fafb;
+  --background: #F8F7F4;
+  --foreground: #1A2332;
+  --surface: #FFFFFF;
+  --border: #E8E4DF;
+  --slate: #2C3E50;
+  --coral: #E85D3A;
+  --sage: #6BAE7F;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-jakarta), Arial, Helvetica, sans-serif;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar — light theme */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.28);
 }
 
 /* Animations */
@@ -72,17 +77,16 @@ body {
   animation: reset-spin 1s linear infinite;
 }
 
-/* Seat hover glow effect */
+/* Seat hover glow — sage green */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 5px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 0 5px rgba(107, 174, 127, 0.3);
   }
   50% {
-    box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 15px rgba(107, 174, 127, 0.5);
   }
 }
 
-/* Selection highlight */
 @layer utilities {
   .text-balance {
     text-wrap: balance;

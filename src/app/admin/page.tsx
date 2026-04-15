@@ -15,8 +15,6 @@ import {
 } from '../lib/store';
 import FloorMap from '../components/FloorMap';
 
-// - Group assignments into sessions -----------------------
-// A "session" = same user + same campaign + same date range + submitted within 10s
 interface BookingGroup {
     key: string;
     userId: string;
@@ -31,9 +29,8 @@ interface BookingGroup {
 }
 
 function groupBookings(assignments: Booking[]): BookingGroup[] {
-    const SESSION_WINDOW_MS = 10_000; // 10 seconds
+    const SESSION_WINDOW_MS = 10_000;
     const groups: BookingGroup[] = [];
-
     const sorted = [...assignments].sort((a, b) => a.timestamp - b.timestamp);
 
     for (const b of sorted) {
@@ -47,7 +44,6 @@ function groupBookings(assignments: Booking[]): BookingGroup[] {
 
         if (existing) {
             existing.assignments.push(b);
-            // Recalculate group status
             const statuses = new Set(existing.assignments.map(x => x.status));
             existing.status = statuses.size === 1 ? (statuses.values().next().value as BookingGroup['status']) : 'mixed';
         } else {
@@ -76,7 +72,7 @@ export default function AdminPage() {
     const [assignments, setBookings] = useState<Booking[]>([]);
     const [toast, setToast] = useState<string | null>(null);
     const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
-    const [bulkLoading, setBulkLoading] = useState<string | null>(null); // group key currently processing
+    const [bulkLoading, setBulkLoading] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isAuthenticated) router.push('/');
@@ -106,7 +102,6 @@ export default function AdminPage() {
         setTimeout(() => setToast(null), 3500);
     };
 
-    // Bulk approve/reject entire session group
     const handleBulkApprove = async (group: BookingGroup) => {
         setBulkLoading(group.key);
         const pending = group.assignments.filter(b => b.status === 'pending');
@@ -142,29 +137,33 @@ export default function AdminPage() {
         return g.status === filter;
     });
 
-    const pendingCount = assignments.filter(b => b.status === 'pending').length;
+    const pendingCount  = assignments.filter(b => b.status === 'pending').length;
     const approvedCount = assignments.filter(b => b.status === 'approved').length;
     const rejectedCount = assignments.filter(b => b.status === 'rejected').length;
 
     if (!isAuthenticated || !isAdmin) return null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-            {/* Header */}
-            <header className="border-b border-white/[0.06] backdrop-blur-md bg-gray-950/80 sticky top-0 z-50">
+        <div className="min-h-screen" style={{ background: '#F8F7F4' }}>
+            {/* Header — dark slate */}
+            <header className="sticky top-0 z-50 shadow-sm" style={{ background: '#2C3E50' }}>
                 <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                            style={{ background: '#E85D3A' }}>
                             <ShieldCheck className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-white font-bold text-lg leading-tight">Admin Panel</h1>
-                            <p className="text-gray-500 text-xs">Manage seat assignments</p>
+                            <h1 className="text-white font-bold text-base leading-tight">Admin Panel</h1>
+                            <p className="text-white/50 text-xs">Manage seat assignments</p>
                         </div>
                     </div>
                     <button
                         onClick={() => { logout(); router.push('/'); }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-sm transition-all"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                        style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.12)' }}
+                        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)')}
+                        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)')}
                     >
                         <LogOut className="w-4 h-4" />
                         Logout
@@ -175,75 +174,77 @@ export default function AdminPage() {
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6">
                 <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-6">
 
-                    {/* Left - Floor Map */}
+                    {/* Left — Floor Map */}
                     <div>
                         {/* Stats */}
                         <div className="grid grid-cols-3 gap-3 mb-5">
                             {[
-                                { label: 'Pending',  value: pendingCount,  color: 'from-yellow-500 to-orange-500', Icon: Clock },
-                                { label: 'Approved', value: approvedCount, color: 'from-green-500 to-emerald-500',  Icon: CheckCircle2 },
-                                { label: 'Rejected', value: rejectedCount, color: 'from-red-500 to-pink-500',      Icon: XCircle },
-                            ].map(({ label, value, color, Icon }) => (
-                                <div key={label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+                                { label: 'Pending',  value: pendingCount,  accent: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  Icon: Clock },
+                                { label: 'Approved', value: approvedCount, accent: '#6BAE7F', bg: 'rgba(107,174,127,0.08)', Icon: CheckCircle2 },
+                                { label: 'Rejected', value: rejectedCount, accent: '#E85D3A', bg: 'rgba(232,93,58,0.08)',   Icon: XCircle },
+                            ].map(({ label, value, accent, bg, Icon }) => (
+                                <div key={label} className="rounded-xl p-4 border" style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <div className={`text-2xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
-                                                {value}
-                                            </div>
-                                            <div className="text-gray-500 text-xs mt-0.5">{label}</div>
+                                            <div className="text-2xl font-bold" style={{ color: accent }}>{value}</div>
+                                            <div className="text-xs mt-0.5 font-medium" style={{ color: '#64748B' }}>{label}</div>
                                         </div>
-                                        <Icon className="w-6 h-6 text-gray-600" />
+                                        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: bg }}>
+                                            <Icon className="w-5 h-5" style={{ color: accent }} />
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
                         {/* Map */}
-                        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-6">
+                        <div className="rounded-2xl p-4 sm:p-6 border" style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
                             <FloorMap seatGroups={seatGroups} isSelectable={false} />
                         </div>
 
-                        {/* Campaign color legend */}
+                        {/* Legend */}
                         <div className="mt-4 flex flex-wrap gap-3 px-1">
-                            <span className="text-gray-500 text-xs self-center">Shift colors:</span>
+                            <span className="text-xs font-medium self-center" style={{ color: '#64748B' }}>Shift colors:</span>
                             {SHIFTS.map(c => (
                                 <div key={c.id} className="flex items-center gap-1.5">
                                     <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: c.color }} />
-                                    <span className="text-gray-400 text-xs">{c.name}</span>
+                                    <span className="text-xs" style={{ color: '#64748B' }}>{c.name}</span>
                                 </div>
                             ))}
                             <div className="flex items-center gap-1.5">
-                                <div className="w-4 h-3 rounded-sm border border-green-500/50 bg-green-500/10" />
-                                <span className="text-gray-400 text-xs">Available</span>
+                                <div className="w-4 h-3 rounded-sm border" style={{ borderColor: '#6BAE7F', background: 'rgba(107,174,127,0.12)' }} />
+                                <span className="text-xs" style={{ color: '#64748B' }}>Available</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <div className="w-4 h-3 rounded-sm border border-yellow-500/50 bg-yellow-500/10" />
-                                <span className="text-gray-400 text-xs">Pending</span>
+                                <div className="w-4 h-3 rounded-sm border" style={{ borderColor: '#F59E0B', background: 'rgba(245,158,11,0.12)' }} />
+                                <span className="text-xs" style={{ color: '#64748B' }}>Pending</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right - Bookings Panel */}
+                    {/* Right — Requests Panel */}
                     <div>
-                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 sticky top-20">
+                        <div className="rounded-2xl p-5 border sticky top-20" style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-white font-semibold">Seat Assignment Requests</h2>
+                                <h2 className="font-semibold" style={{ color: '#2C3E50' }}>Seat Assignment Requests</h2>
                                 {pendingCount > 0 && (
-                                    <span className="text-xs bg-yellow-500/15 text-yellow-400 border border-yellow-500/25 px-2 py-0.5 rounded-full">
+                                    <span className="text-xs px-2 py-0.5 rounded-full font-medium border"
+                                        style={{ background: 'rgba(245,158,11,0.1)', color: '#D97706', borderColor: 'rgba(245,158,11,0.25)' }}>
                                         {pendingCount} pending
                                     </span>
                                 )}
                             </div>
 
                             {/* Filter tabs */}
-                            <div className="flex gap-1 mb-4 bg-white/[0.03] rounded-xl p-1">
+                            <div className="flex gap-1 mb-4 rounded-xl p-1" style={{ background: '#F8F7F4' }}>
                                 {(['pending', 'approved', 'rejected', 'all'] as const).map(f => (
                                     <button
                                         key={f}
                                         onClick={() => setFilter(f)}
-                                        className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all capitalize ${
-                                            filter === f ? 'bg-white/[0.1] text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'
-                                        }`}
+                                        className="flex-1 py-1.5 px-2 rounded-lg text-xs font-medium transition-all capitalize"
+                                        style={filter === f
+                                            ? { background: '#FFFFFF', color: '#2C3E50', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }
+                                            : { color: '#94A3B8' }}
                                     >
                                         {f}
                                     </button>
@@ -254,7 +255,7 @@ export default function AdminPage() {
                             <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-1">
                                 {filteredGroups.length === 0 ? (
                                     <div className="text-center py-10">
-                                        <p className="text-gray-500 text-sm">No {filter === 'all' ? '' : filter} assignments</p>
+                                        <p className="text-sm" style={{ color: '#64748B' }}>No {filter === 'all' ? '' : filter} assignments</p>
                                     </div>
                                 ) : (
                                     filteredGroups.map(group => {
@@ -263,40 +264,46 @@ export default function AdminPage() {
                                         const isBulkLoading = bulkLoading === group.key;
                                         const isMultiple = group.assignments.length > 1;
 
+                                        const statusStyle =
+                                            group.status === 'pending'
+                                                ? { bg: 'rgba(245,158,11,0.08)', color: '#D97706', border: 'rgba(245,158,11,0.2)' }
+                                                : group.status === 'approved'
+                                                    ? { bg: 'rgba(107,174,127,0.08)', color: '#4D9765', border: 'rgba(107,174,127,0.2)' }
+                                                    : group.status === 'rejected'
+                                                        ? { bg: 'rgba(239,68,68,0.06)', color: '#DC2626', border: 'rgba(239,68,68,0.15)' }
+                                                        : { bg: 'rgba(0,0,0,0.04)', color: '#475569', border: 'rgba(0,0,0,0.12)' };
+
                                         return (
                                             <div
                                                 key={group.key}
-                                                className="bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-hidden transition-all hover:bg-white/[0.05]"
+                                                className="rounded-xl overflow-hidden border transition-all"
+                                                style={{ background: '#FAFAF9', borderColor: '#E8E4DF' }}
                                             >
-                                                {/* Group header */}
                                                 <div className="px-4 pt-4 pb-3">
                                                     <div className="flex items-start justify-between gap-2">
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                                {/* Shift color dot */}
                                                                 <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: campaign?.color }} />
-                                                                <span className="text-white font-semibold text-sm">{group.campaignName} shift</span>
+                                                                <span className="font-semibold text-sm" style={{ color: '#1A2332' }}>
+                                                                    {group.campaignName} shift
+                                                                </span>
                                                                 {isMultiple && (
-                                                                    <span className="text-xs bg-white/[0.08] text-gray-300 px-2 py-0.5 rounded-full">
+                                                                    <span className="text-xs px-2 py-0.5 rounded-full"
+                                                                        style={{ background: '#EDE8E1', color: '#64748B' }}>
                                                                         {group.assignments.length} seats
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <p className="text-gray-500 text-xs mt-1">
-                                                                by <span className="text-gray-300">{group.username}</span>
-                                                                {' | '}{new Date(group.timestamp).toLocaleString()}
+                                                            <p className="text-xs mt-1" style={{ color: '#64748B' }}>
+                                                                by <span style={{ color: '#2C3E50', fontWeight: 600 }}>{group.username}</span>
+                                                                {' · '}{new Date(group.timestamp).toLocaleString()}
                                                             </p>
-                                                            <p className="text-gray-500 text-xs mt-0.5">
-                                                                {group.startDate} - {group.endDate}
+                                                            <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>
+                                                                {group.startDate} — {group.endDate}
                                                             </p>
                                                         </div>
-                                                        {/* Status badge */}
-                                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
-                                                            group.status === 'pending' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
-                                                            : group.status === 'approved' ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                                            : group.status === 'rejected' ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                                            : 'bg-white/[0.06] text-gray-400 border border-white/[0.08]'
-                                                        }`}>
+                                                        <span className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 border"
+                                                            style={{ background: statusStyle.bg, color: statusStyle.color, borderColor: statusStyle.border }}>
                                                             {group.status === 'mixed' ? `${pendingInGroup.length} pending` : group.status}
                                                         </span>
                                                     </div>
@@ -306,11 +313,14 @@ export default function AdminPage() {
                                                         {group.assignments.map(b => (
                                                             <span
                                                                 key={b.id}
-                                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                                                                    b.status === 'approved' ? 'border-green-500/30 text-green-400 bg-green-500/10'
-                                                                    : b.status === 'rejected' ? 'border-red-500/30 text-red-400 bg-red-500/10 line-through'
-                                                                    : 'border-yellow-500/30 text-yellow-300 bg-yellow-500/10'
-                                                                }`}
+                                                                className="text-[10px] font-bold px-2 py-0.5 rounded border"
+                                                                style={
+                                                                    b.status === 'approved'
+                                                                        ? { borderColor: 'rgba(107,174,127,0.3)', color: '#4D9765', background: 'rgba(107,174,127,0.08)' }
+                                                                        : b.status === 'rejected'
+                                                                            ? { borderColor: 'rgba(239,68,68,0.25)', color: '#DC2626', background: 'rgba(239,68,68,0.06)', textDecoration: 'line-through' }
+                                                                            : { borderColor: 'rgba(245,158,11,0.3)', color: '#B45309', background: 'rgba(245,158,11,0.08)' }
+                                                                }
                                                             >
                                                                 {b.seatLabel}
                                                             </span>
@@ -318,26 +328,32 @@ export default function AdminPage() {
                                                     </div>
                                                 </div>
 
-                                                {/* Bulk action buttons - only if any pending seats */}
+                                                {/* Bulk action buttons */}
                                                 {pendingInGroup.length > 0 && (
                                                     <div className="px-4 pb-4 pt-1 flex gap-2">
                                                         <button
                                                             onClick={() => handleBulkApprove(group)}
                                                             disabled={isBulkLoading}
-                                                            className="flex-1 py-2 rounded-lg bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-xs font-semibold transition-all shadow-lg shadow-green-500/20 flex items-center justify-center gap-1.5"
+                                                            className="flex-1 py-2 rounded-lg text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                                            style={{ background: '#6BAE7F' }}
+                                                            onMouseEnter={e => !isBulkLoading && ((e.currentTarget as HTMLElement).style.background = '#4D9765')}
+                                                            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '#6BAE7F')}
                                                         >
                                                             {isBulkLoading
-                                                                ? <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                                                ? <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                                                                 : <Check className="w-3.5 h-3.5" />}
                                                             {isMultiple ? `Approve all ${pendingInGroup.length}` : 'Approve'}
                                                         </button>
                                                         <button
                                                             onClick={() => handleBulkReject(group)}
                                                             disabled={isBulkLoading}
-                                                            className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-semibold transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-1.5"
+                                                            className="flex-1 py-2 rounded-lg text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                                            style={{ background: '#E85D3A' }}
+                                                            onMouseEnter={e => !isBulkLoading && ((e.currentTarget as HTMLElement).style.background = '#D44E2C')}
+                                                            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '#E85D3A')}
                                                         >
                                                             {isBulkLoading
-                                                                ? <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                                                ? <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                                                                 : <X className="w-3.5 h-3.5" />}
                                                             {isMultiple ? `Reject all ${pendingInGroup.length}` : 'Reject'}
                                                         </button>
@@ -355,8 +371,9 @@ export default function AdminPage() {
 
             {/* Toast */}
             {toast && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce">
-                    <div className="bg-gray-800 border border-white/[0.1] text-white text-sm px-6 py-3 rounded-xl shadow-2xl backdrop-blur-md whitespace-nowrap">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce-in">
+                    <div className="text-white text-sm px-6 py-3 rounded-xl shadow-lg whitespace-nowrap"
+                        style={{ background: '#2C3E50' }}>
                         {toast}
                     </div>
                 </div>
