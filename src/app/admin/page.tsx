@@ -374,3 +374,9 @@ export default function AdminPage() {
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce">
                     <div className="bg-gray-800 border border-white/[0.1] text-white text-sm px-6 py-3 rounded-xl shadow-2xl backdrop-blur-md whitespace-nowrap">
                         {toast}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
