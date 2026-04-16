@@ -255,6 +255,47 @@ export default function BookingPage() {
 
                     {/* Sidebar */}
                     <div className="space-y-4">
+                        {/* Booking Period */}
+                        <div className="rounded-2xl p-5 border" style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
+                            <h2 className="font-semibold mb-3 text-sm flex items-center gap-2" style={{ color: '#2C3E50' }}>
+                                <Calendar className="w-4 h-4" style={{ color: '#94A3B8' }} />
+                                Booking Period
+                            </h2>
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-xs font-semibold mb-1" style={{ color: '#475569' }}>Start Date</label>
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        min={new Date().toISOString().split('T')[0]}
+                                        className="w-full px-3 py-2 rounded-lg border text-sm outline-none transition-all [color-scheme:light]"
+                                        style={{ background: '#F8F7F4', borderColor: '#E8E4DF', color: '#1A2332' }}
+                                        onFocus={e => (e.target.style.borderColor = '#E85D3A')}
+                                        onBlur={e => (e.target.style.borderColor = '#E8E4DF')}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold mb-1" style={{ color: '#475569' }}>End Date</label>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        min={startDate || new Date().toISOString().split('T')[0]}
+                                        className="w-full px-3 py-2 rounded-lg border text-sm outline-none transition-all [color-scheme:light]"
+                                        style={{ background: '#F8F7F4', borderColor: '#E8E4DF', color: '#1A2332' }}
+                                        onFocus={e => (e.target.style.borderColor = '#E85D3A')}
+                                        onBlur={e => (e.target.style.borderColor = '#E8E4DF')}
+                                    />
+                                </div>
+                                {startDate && endDate && (
+                                    <p className="text-xs font-medium" style={{ color: '#64748B' }}>
+                                        {Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} day(s) selected
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Shift Selector */}
                         <div className="rounded-2xl p-5 border" style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
                             <h2 className="font-semibold mb-3 text-sm" style={{ color: '#2C3E50' }}>Select Shift</h2>
@@ -301,47 +342,6 @@ export default function BookingPage() {
                                         </div>
                                     </div>
                                 ))}
-                            </div>
-                        </div>
-
-                        {/* Booking Period */}
-                        <div className="rounded-2xl p-5 border" style={{ background: '#FFFFFF', borderColor: '#E8E4DF' }}>
-                            <h2 className="font-semibold mb-3 text-sm flex items-center gap-2" style={{ color: '#2C3E50' }}>
-                                <Calendar className="w-4 h-4" style={{ color: '#94A3B8' }} />
-                                Booking Period
-                            </h2>
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="block text-xs font-semibold mb-1" style={{ color: '#475569' }}>Start Date</label>
-                                    <input
-                                        type="date"
-                                        value={startDate}
-                                        onChange={(e) => setStartDate(e.target.value)}
-                                        min={new Date().toISOString().split('T')[0]}
-                                        className="w-full px-3 py-2 rounded-lg border text-sm outline-none transition-all [color-scheme:light]"
-                                        style={{ background: '#F8F7F4', borderColor: '#E8E4DF', color: '#1A2332' }}
-                                        onFocus={e => (e.target.style.borderColor = '#E85D3A')}
-                                        onBlur={e => (e.target.style.borderColor = '#E8E4DF')}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold mb-1" style={{ color: '#475569' }}>End Date</label>
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        min={startDate || new Date().toISOString().split('T')[0]}
-                                        className="w-full px-3 py-2 rounded-lg border text-sm outline-none transition-all [color-scheme:light]"
-                                        style={{ background: '#F8F7F4', borderColor: '#E8E4DF', color: '#1A2332' }}
-                                        onFocus={e => (e.target.style.borderColor = '#E85D3A')}
-                                        onBlur={e => (e.target.style.borderColor = '#E8E4DF')}
-                                    />
-                                </div>
-                                {startDate && endDate && (
-                                    <p className="text-xs font-medium" style={{ color: '#64748B' }}>
-                                        {Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} day(s) selected
-                                    </p>
-                                )}
                             </div>
                         </div>
 
